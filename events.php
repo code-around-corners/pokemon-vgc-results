@@ -24,6 +24,7 @@
 			    <th class="text-center" data-priority=1>Date</th>
 			    <th class="text-center" data-priority=2>Country</th>
 			    <th class="text-center" data-priority=3>Event</th>
+			    <th class="text-center" data-priority=4>Season</th>
 			    <th class="text-center not-mobile" data-priority=5>Players</th>
 			    <th class="text-center not-mobile" data-priority=4>Winner</th>
 		    </thead>
@@ -38,6 +39,7 @@
 <?		} ?>
                 	</td>
                 	<td class="text-center"><a href="standings.php?id=<? echo $eventId; ?>"><? echo $event["eventName"]; ?></a></td>
+                	<td class="text-center"><? echo $event["season"]; ?></td>
                 	<td class="text-center"><? echo ($event["playerCount"] == 0 ? "Unknown" : $event["playerCount"]); ?></td>
                 	<td class="text-center"><a href="player.php?id=<? echo $event["eventWinnerId"]; ?>"><? echo $event["eventWinner"]; ?></a></td>
 				</tr>
@@ -52,11 +54,30 @@
 		$(document).ready(function() {
 			$('.tttooltip').tooltipster();
 
+			$('#events thead tr').clone(true).appendTo( '#events thead' );
+			$('#events thead tr:eq(1) th').each( function (i) {
+				var title = $(this).text();
+				
+				$(this).html('<input class="w-100 text-center" type="text" placeholder="Search '+title+'" />');
+				
+				$("input", this).on("keyup change", function () {
+					if ( eventTable.column(i).search() !== this.value ) {
+						eventTable
+							.column(i)
+							.search( this.value )
+							.draw();
+						$('.tttooltip').tooltipster();
+					}
+				});
+			});
+    
 			eventTable = $("#events").DataTable({
 				responsive: true,
-				"order": [[ 0, "desc" ]]
+				"order": [[ 0, "desc" ]],
+				orderCellsTop: true,
+				fixedHeader: true
 			});
-
+			
 			eventTable.on('responsive-display', function (e, datatable, row, showHide, update) {
 				$(document).ready(function() {
 					$('.tttooltip').tooltipster();

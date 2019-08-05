@@ -277,7 +277,8 @@ const EVENT_LIST_SQL = "select
 		p.playerName AS eventWinner,
 		case when e.eventName = '' then concat(e.city,' ',et.label) else e.eventName end AS eventName,
 		et.points AS points,
-		e.playerCount AS playerCount
+		e.playerCount AS playerCount,
+		s.year as season
 	from
 		events e
 			left join results r
@@ -288,6 +289,8 @@ const EVENT_LIST_SQL = "select
 				on pm.mergedId = p.id
 			inner join eventTypes et
 				on e.eventTypeId = et.id
+			inner join seasons s
+				on et.seasonId = s.id
 	where
 		(r.position = 1 or r.position is null) ";
 
@@ -377,7 +380,8 @@ function getEventDetails($eventSql) {
 			"eventWinner"	=> $event["eventWinner"],
 			"eventName"		=> $event["eventName"],
 			"eventPoints"	=> json_decode($event["points"], true),
-			"playerCount"	=> (int)$event["playerCount"]
+			"playerCount"	=> (int)$event["playerCount"],
+			"season"		=> (int)$event["season"]
 		);
 	}
 	
@@ -625,7 +629,7 @@ function getAllPlayers() {
 	}
 	
 	$playerInfo->free();
-
+	
 	return [
 		"result"	=> "success",
 		"status"	=> 200,
@@ -714,6 +718,7 @@ function addNewPlayer() {
 	$playerName = "";
 	$countryCode = "";
 	$twitter = "";
+	$apiKey = $_GET["key"];
 	
 	if ( isset($_GET["playerName"]) )	$playerName = $_GET["playerName"];
 	if ( isset($_GET["countryCode"]) )	$countryCode = strtoupper($_GET["countryCode"]);
@@ -727,8 +732,8 @@ function addNewPlayer() {
 		];
 	}
 	
-	$stmt = $mysqli->prepare("Insert Into players ( playerName, country, twitter ) Values ( ?, ?, ? );");
-	$stmt->bind_param("sss", $playerName, $countryCode, $twitter);
+	$stmt = $mysqli->prepare("Insert Into players ( playerName, country, twitter, api ) Values ( ?, ?, ?, ? );");
+	$stmt->bind_param("sss", $playerName, $countryCode, $twitter, $apiKey);
 	$stmt->execute();
 	$playerId = $stmt->insert_id;
 	$stmt->close();
@@ -796,6 +801,7 @@ function addNewEvent() {
 	$eventDate = "";
 	$eventTypeId = "";
 	$playerCount = "";
+	$apiKey = $_GET["key"];
 	
 	if ( isset($_GET["eventName"]) )	$eventName = $_GET["eventName"];
 	if ( isset($_GET["countryCode"]) )	$countryCode = strtoupper($_GET["countryCode"]);
@@ -813,8 +819,8 @@ function addNewEvent() {
 	
 	if ( $playerCount == "" ) $playerCount = 0;
 	
-	$stmt = $mysqli->prepare("Insert Into events ( eventName, country, date, eventTypeId, playerCount ) Values ( ?, ?, ?, ?, ? );");
-	$stmt->bind_param("sssii", $eventName, $countryCode, $eventDate, $eventTypeId, $playerCount);
+	$stmt = $mysqli->prepare("Insert Into events ( eventName, country, date, eventTypeId, playerCount, api ) Values ( ?, ?, ?, ?, ?, ? );");
+	$stmt->bind_param("sssii", $eventName, $countryCode, $eventDate, $eventTypeId, $playerCount, $apiKey);
 	$stmt->execute();
 	$eventId = $stmt->insert_id;
 	$stmt->close();
@@ -841,6 +847,7 @@ function addNewResult() {
 	$playerId = "";
 	$position = "";
 	$team = array();
+	$apiKey = $_GET["key"];
 	
 	if ( isset($_GET["eventId"]) )		$eventId = $_GET["eventId"];
 	if ( isset($_GET["playerId"]) )		$playerId = $_GET["playerId"];
@@ -865,8 +872,8 @@ function addNewResult() {
 	
 	$encodedTeam = json_encode($team);
 	
-	$stmt = $mysqli->prepare("Insert Into results ( eventId, playerId, position, team ) Values ( ?, ?, ?, ? );");
-	$stmt->bind_param("iiis", $eventId, $playerId, $position, $encodedTeam);
+	$stmt = $mysqli->prepare("Insert Into results ( eventId, playerId, position, team, api ) Values ( ?, ?, ?, ?, ? );");
+	$stmt->bind_param("iiis", $eventId, $playerId, $position, $encodedTeam, $apiKey);
 	$stmt->execute();
 	echo $stmt->error;
 	$resultId = $stmt->insert_id;

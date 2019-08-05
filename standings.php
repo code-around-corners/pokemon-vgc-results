@@ -43,7 +43,7 @@
 			    <th class="text-center not-mobile" data-priority=5>Country</th>
 			    <th class="text-center" data-priority=2>Player</th>
 			    <th class="text-center" data-priority=3>CP</th>
-			    <th class="text-center" data-priority=4>Team</th>
+			    <th class="text-center team-column" data-priority=4>Team</th>
 			    <th class="text-center not-mobile" data-priority=6>Export Team</th>
 		    </thead>
 		    <tbody>

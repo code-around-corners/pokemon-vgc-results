@@ -52,9 +52,10 @@
 			    <th class="text-center" data-priority=1>Date</th>
 			    <th class="text-center not-mobile" data-priority=5>Country</th>
 			    <th class="text-center" data-priority=2>Tournament</th>
+			    <th class="text-center" data-priority=4>Season</th>
 			    <th class="text-center" data-priority=3>Position</th>
 			    <th class="text-center not-mobile" data-priority=4>CP</th>
-			    <th class="text-center not-mobile" data-priority=6>Team</th>
+			    <th class="text-center not-mobile team-column" data-priority=6>Team</th>
 			    <th class="text-center not-mobile">Export Team</th>
 		    </thead>
 		    <tbody>
@@ -80,6 +81,7 @@
 <?			echo $playerData["data"]["results"]["events"][$eventId]["eventName"]; ?>
 			            </a>
 					</td>
+					<td class="text-center"><? echo $playerData["data"]["results"]["events"][$eventId]["season"]; ?></td>
 					<td class="text-center"><? echo $result["position"]; ?></td>
 					<td class="text-center"><? echo $result["points"]; ?></td>
 					<td class="text-center">

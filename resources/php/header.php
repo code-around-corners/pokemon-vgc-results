@@ -12,3 +12,5 @@
 
 	<link rel="stylesheet" type="text/css" href="vendor/fontawesome/css/all.min.css" />
     <link rel="stylesheet" href="resources/css/custom.css" />
+    
+    <title>Trainer Tower VGC Results</title>
