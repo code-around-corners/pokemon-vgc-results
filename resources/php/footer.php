@@ -2,21 +2,21 @@
 	<br />
     <footer>
         <nav class="navbar navbar-default fixed-bottom bg-dark text-light text-center" role="navigation">
-	        <div class="row" style="width: 100%; margin-left: 0px;">
-		        <div class="col-sm-12 col-md-4 text-sm-center text-md-left">
+	        <div class="row w-100 ml-0">
+		        <div class="col-10 col-md-4 text-left">
 			        <a href="https://www.trainertower.com/"><img class="small-icon" src="resources/images/social/website.png" /></a>&nbsp;
 			        <a href="https://www.facebook.com/TrainerTowerVGC/"><img class="small-icon" src="resources/images/social/facebook.png" /></a>&nbsp;
 			        <a href="https://www.twitter.com/trainertower"><img class="small-icon" src="resources/images/social/twitter.png" /></a>&nbsp;
 			        <strong>Trainer Tower</strong>
 		        </div>
-		        <div class="col-sm-12 col-md-4 text-center">
+		        <div class="col-md-4 d-none d-md-block text-center">
 <?	if ( session_status() == PHP_SESSION_ACTIVE ) { ?>
 					<span id="currentApiKey" class="text-muted">
 						<? echo (isset($_SESSION['apiKey']) ? $_SESSION['apiKey'] : "Set API Key"); ?>
 					</span>
 <?	} ?>
 		        </div>
-		        <div class="col-sm-12 col-md-4 text-sm-center text-md-right">
+		        <div class="col-2 col-md-4 text-md-right">
 					<a class="text-light" href="https://www.codearoundcorners.com">
 						<img class="tttooltip small-icon" src="resources/images/cdac.png" title="Site by Code Around Corners" />
 					</a>
