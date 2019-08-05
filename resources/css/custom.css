@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat|Raleway|Rubik|Robato');
+
+body {
+	background-image: url("../images/bgwhite.gif");
+	background-repeat: repeat;
+	font-family: 'Robato', sans-serif !important;
+	color: #36456D;
+	padding-top: 70px;
+	padding-bottom: 70px;
+}
+
+h4 {
+	font-family: 'Rubik', sans-serif !important;
+	margin-bottom: 0px !important;
+}
+
+h5 {
+	margin-top: 8px !important;
+}
+
+h6 {
+	font-family: 'Montserrat', sans-serif !important;
+	margin-top: 8px !important;
+}
+
+.nav, .btn-group {
+	font-family: 'Rubik', sans-serif !important;
+	font-weight: bold;
+	align: center;
+	padding-bottom: 10px;
+}
+
+.footer > .navbar > .navbar-brand {
+	font-size: 10px !important;
+}
+
+.table > tbody > tr > td {
+	vertical-align: middle;
+}
+
+.nav-link {
+	color: #36456D;
+}
+
+a {
+	color: #36456D;
+}
+
+.footer-link a {
+	color: #0000EE;
+}
+
+a:hover {
+	color: #DC115E;
+}
+
+.table-nonfluid {
+	width: auto !important;
+}
+
+.header-row {
+	background-color: #36456D;
+	color: #ffffff;
+	font-weight: bold;
+}
+
+.odd-row {
+	background-color: #ffffff;
+}
+
+.even-row {
+	background-color: #f2f2f2;
+}
+
+.grey-header {
+	padding: 20px;
+	vertical-align: middle;
+	font-size: 20px;
+}
+
+th, td {
+	color: #36456D;
+}
+
+.icon {
+	height: 45px;
+}
+
+.small-icon {
+	height: 30px;
+}
+
+.row {
+	margin-left: 0px !important;
+	margin-right: 0px !important;
+}
+
+.event-name {
+	margin-bottom: 0;
+	text-align: center;
+}
+
+table.dataTable.compact thead th, table.dataTable.compact thead td {
+	padding-right: 4px !important;
+}
+
+.modal-body {
+    min-height: calc(100vh - 210px);
+    max-height: calc(100vh - 210px);
+    overflow-y: auto;
+}
+
+.fas-large {
+	font-size: 24px !important;
+}
