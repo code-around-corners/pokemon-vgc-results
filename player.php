@@ -46,17 +46,39 @@
         </h4>
     </div>
 
+    <hr />
+    
     <div class="container">
-	    <table id="results" width="100%" class="display stripe compact responsive">
+		<div class="input-group input-group-sm">
+			<div class="input-group-prepend">
+				<button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="current-season">All Seasons</button>
+				<div class="dropdown-menu">
+					<a class="dropdown-item season-selection" href="#" data-season="-1">All Seasons</a>
+					<a class="dropdown-item season-selection" href="#" data-season="2020">2020</a>
+					<a class="dropdown-item season-selection" href="#" data-season="2019">2019</a>
+					<a class="dropdown-item season-selection" href="#" data-season="2018">2018</a>
+					<a class="dropdown-item season-selection" href="#" data-season="2017">2017</a>
+					<a class="dropdown-item season-selection" href="#" data-season="-2">Past Seasons</a>
+				</div>
+			</div>
+			<input type="text" class="form-control" aria-label="Text input with dropdown button" placeholder="Search..." id="searchFilter" />
+		</div>
+    </div>
+    
+    <hr />
+
+    <div class="container">
+	    <table id="results" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true">
 		    <thead>
-			    <th class="text-center" data-priority=1>Date</th>
-			    <th class="text-center not-mobile" data-priority=5>Country</th>
-			    <th class="text-center" data-priority=2>Tournament</th>
-			    <th class="text-center" data-priority=4>Season</th>
-			    <th class="text-center" data-priority=3>Position</th>
-			    <th class="text-center not-mobile" data-priority=4>CP</th>
-			    <th class="text-center not-mobile team-column" data-priority=6>Team</th>
-			    <th class="text-center not-mobile">Export Team</th>
+			    <th></th>
+			    <th class="text-center" data-sorted="true" data-direction="DESC">Date</th>
+			    <th class="text-center" data-breakpoints="xs">Country</th>
+			    <th class="text-center">Tournament</th>
+			    <th class="text-center" data-breakpoints="all" data-name="season" data-type="number">Season</th>
+			    <th class="text-center" data-type="number">Position</th>
+			    <th class="text-center" data-breakpoints="xs" data-type="number">CP</th>
+			    <th class="text-center" data-breakpoints="xs" class="team-column">Team</th>
+			    <th class="text-center" data-breakpoints="xs sm">Export Team</th>
 		    </thead>
 		    <tbody>
 <?	$recordCount = 0; ?>
@@ -68,23 +90,25 @@
 <?			$eventCountryName = $playerData["data"]["results"]["events"][$eventId]["countryName"]; ?>
 
 				<tr>
-					<td class="text-center" data-sort="<? echo $playerData["data"]["results"]["events"][$eventId]["date"]; ?>">
+					<td></td>
+					<td class="text-center" data-sort-value="<? echo $playerData["data"]["results"]["events"][$eventId]["date"]; ?>">
 						<? echo date("F jS Y", strtotime($playerData["data"]["results"]["events"][$eventId]["date"])); ?>
 					</td>
-                	<td class="text-center" data-search="<? echo $eventCountryName; ?>">
+                	<td class="text-center" data-filter-value="<? echo $eventCountryName; ?>">
 <?			if ( $eventCountryCode != "" ) { ?>
                 		<img src="resources/images/flags/<? echo strtolower($eventCountryCode); ?>.png" title="<? echo $eventCountryName; ?>" class="icon tttooltip" />
 <?			} ?>
                 	</td>
 					<td class="text-center">
 			            <a href="standings.php?id=<? echo $eventId; ?>">
-<?			echo $playerData["data"]["results"]["events"][$eventId]["eventName"]; ?>
+				            <span class="d-sm-inline d-md-none"><? echo getFlagEmoji(strtoupper($eventCountryCode)) . " "; ?></span>
+							<? echo $playerData["data"]["results"]["events"][$eventId]["eventName"]; ?>
 			            </a>
 					</td>
 					<td class="text-center"><? echo $playerData["data"]["results"]["events"][$eventId]["season"]; ?></td>
 					<td class="text-center"><? echo $result["position"]; ?></td>
 					<td class="text-center"><? echo $result["points"]; ?></td>
-					<td class="text-center">
+					<td class="text-center team-column">
 <?			$showdownExport = ""; ?>
 <?			foreach($result["team"] as $pokemon) { ?>
 						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
@@ -135,41 +159,45 @@
 		}
 		
 		$(document).ready(function() {
-			PkSpr.process_dom();
-            $('.tttooltip').tooltipster();
-			
-			resultTable = $("#results").DataTable({
-				responsive: true,
-				"order": [[ 0, "desc" ]]
+			$("#results").footable({
+		       'on': {
+		            'ready.ft.table': function(e, ft) {
+						PkSpr.process_dom();
+		            	$(".tttooltip").tooltipster();
+		          	}
+		        }
 			});
+		});
+		
+		$(".season-selection").click(function() {
+			var seasonId = $(this).attr("data-season");
 			
-			resultTable.on('responsive-display', function (e, datatable, row, showHide, update) {
-				$(document).ready(function() {
-					PkSpr.process_dom();
-					$('.tttooltip').tooltipster();
-				});
-			});
+			$("#current-season").text($(this).text());
 			
-			resultTable.on('search.dt', function () {
-				$(document).ready(function() {
-					PkSpr.process_dom();
-					$('.tttooltip').tooltipster();
-				});
-			});
+			filter = FooTable.get("#results").use(FooTable.Filtering);
+			
+			if ( seasonId == -1 ) {
+				filter.removeFilter("season");
+			} else if ( seasonId == -2 ) {
+				filter.addFilter("season", "2010 OR 2011 OR 2012 OR 2013 OR 2014 OR 2015 OR 2016", ["season"]);
+			} else {
+				filter.addFilter("season", seasonId, ["season"]);
+			}
+			
+			filter.filter();
+		});
+		
+		$("#searchFilter").on("keyup", function() {
+			filterText = $(this).val();
+			filter = FooTable.get("#results").use(FooTable.Filtering);
+			
+			if ( filterText == "" || filterText.length < 3 ) {
+				filter.removeFilter("generic");
+			} else {
+				filter.addFilter("generic", filterText);
+			}			
 
-			resultTable.on('page.dt', function () {
-				$(document).ready(function() {
-					PkSpr.process_dom();
-					$('.tttooltip').tooltipster();
-				});
-			});
-
-			resultTable.on('order.dt', function () {
-				$(document).ready(function() {
-					PkSpr.process_dom();
-					$('.tttooltip').tooltipster();
-				});
-			});
+			filter.filter();
 		});
 	</script>
 </body>

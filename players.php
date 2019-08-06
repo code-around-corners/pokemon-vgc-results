@@ -19,29 +19,38 @@
     </div>
     
     <hr />
-
+    
     <div class="container">
-	    <table id="events" width="100%" class="display stripe compact responsive">
+		<div class="input-group input-group-sm">
+			<input type="text" class="form-control" aria-label="Text input with dropdown button" placeholder="Search..." id="searchFilter" />
+		</div>
+    </div>
+    
+    <hr />
+    <div class="container">
+	    <table id="events" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true">
 		    <thead>
+			    <th></th>
 			    <th class="text-center">Country</th>
-			    <th class="text-center">Player</th>
+			    <th class="text-center" data-sorted="true" data-direction="ASC">Player</th>
 			    <th class="text-center">Last Recorded Event</th>
-			    <th class="text-center not-mobile">Social Media</th>
+			    <th class="text-center">Social Media</th>
 		    </thead>
 		    <tbody>
         
 <?	foreach($playerList["data"] as $playerId => $player) { ?>
 				<tr>
-                	<td class="text-center" data-search="<? echo $player["countryName"]; ?>">
+					<td></td>
+                	<td class="text-center" data-filter-value="<? echo $player["countryName"]; ?>">
 <?		if ( $player["countryCode"] != "" ) { ?>
                 		<img src="resources/images/flags/<? echo strtolower($player["countryCode"]); ?>.png" title="<? echo $player["countryName"]; ?>" class="icon tttooltip" />
 <?		} ?>
                 	</td>
-                	<td class="text-center"><a href="player.php?id=<? echo $playerId; ?>"><? echo $player["playerName"]; ?></a></td>
+                	<td class="text-center" data-sort-value="<? echo $player["playerName"]; ?>"><a href="player.php?id=<? echo $playerId; ?>"><? echo $player["playerName"]; ?></a></td>
 <?		if ( $player["lastEventDate"] != null ) { ?>
-                	<td class="text-center" data-sort="<? echo $player["lastEventDate"]; ?>"><? echo date("F jS Y", strtotime($player["lastEventDate"])); ?></td>
+                	<td class="text-center" data-sort-value="<? echo $player["lastEventDate"]; ?>"><? echo date("F jS Y", strtotime($player["lastEventDate"])); ?></td>
 <?		} else { ?>
-					<td class="text-center" data-sort=""></td>
+					<td class="text-center" data-sort-value=""></td>
 <?		} ?>
                 	<td class="text-center">
 <?		if ( isset($player["socialMedia"]["facebook"]) ) { ?>	            
@@ -75,36 +84,27 @@
 
 	<script type="text/javascript">
 		$(document).ready(function() {
-			$('.tttooltip').tooltipster();
-
-			eventTable = $("#events").DataTable({
-				responsive: true,
-				"order": [[ 2, "desc" ], [ 1, "asc" ]]
+			$("#events").footable({
+		       'on': {
+		            'ready.ft.table': function(e, ft) {
+						PkSpr.process_dom();
+		            	$(".tttooltip").tooltipster();
+		          	}
+		        }
 			});
-
-			eventTable.on('responsive-display', function (e, datatable, row, showHide, update) {
-				$(document).ready(function() {
-					$('.tttooltip').tooltipster();
-				});
-			});
+		});
+				
+		$("#searchFilter").on("keyup", function() {
+			filterText = $(this).val();
+			filter = FooTable.get("#events").use(FooTable.Filtering);
 			
-			eventTable.on('search.dt', function () {
-				$(document).ready(function() {
-					$('.tttooltip').tooltipster();
-				});
-			});
+			if ( filterText == "" || filterText.length < 3 ) {
+				filter.removeFilter("generic");
+			} else {
+				filter.addFilter("generic", filterText);
+			}			
 
-			eventTable.on('page.dt', function () {
-				$(document).ready(function() {
-					$('.tttooltip').tooltipster();
-				});
-			});
-
-			eventTable.on('order.dt', function () {
-				$(document).ready(function() {
-					$('.tttooltip').tooltipster();
-				});
-			});
+			filter.filter();
 		});
 	</script>
 </body>

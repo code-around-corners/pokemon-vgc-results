@@ -37,37 +37,48 @@
     </div>
 
     <div class="container">
-	    <table id="results" width="100%" class="display stripe compact responsive nowrap">
+		<div class="input-group input-group-sm">
+			<input type="text" class="form-control" aria-label="Text input with dropdown button" placeholder="Search..." id="searchFilter" />
+		</div>
+    </div>
+
+    <div class="container">
+	    <table id="results" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true">
 		    <thead>
-			    <th class="text-center" data-priority=1>Position</th>
-			    <th class="text-center not-mobile" data-priority=5>Country</th>
-			    <th class="text-center" data-priority=2>Player</th>
-			    <th class="text-center" data-priority=3>CP</th>
-			    <th class="text-center team-column" data-priority=4>Team</th>
-			    <th class="text-center not-mobile" data-priority=6>Export Team</th>
+			    <th></th>
+			    <th class="text-center" data-sorted="true" data-direction="ASC" data-type="number">Position</th>
+			    <th class="text-center" data-breakpoints="xs">Country</th>
+			    <th class="text-center">Player</th>
+			    <th class="text-center" data-type="number">CP</th>
+			    <th class="text-center" data-breakpoints="xs">Team</th>
+			    <th class="text-center" data-breakpoints="xs sm">Export Team</th>
 		    </thead>
 		    <tbody>
         
 <?	foreach($resultData["data"]["results"][$eventId] as $position => $result) { ?>
 <?		if ( $result["points"] == 0 && $showOnlyCp ) continue; ?>
 				<tr>
+					<td></td>
                 	<td class="text-center"><? echo $position; ?></td>
-                	<td class="text-center" data-search="<? echo $result["playerCountryName"]; ?>">
+                	<td class="text-center" data-filter-value="<? echo $result["playerCountryName"]; ?>">
 <?		if ( $result["playerCountryCode"] != "" ) { ?>
                 		<img src="resources/images/flags/<? echo strtolower($result["playerCountryCode"]); ?>.png" title="<? echo $result["playerCountryName"]; ?>" class="icon tttooltip"/>
 <?		} ?>
                 	</td>
                 	<td class="text-center">
-	                	<a href="player.php?id=<? echo $result["playerId"]; ?>"><? echo $result["playerName"]; ?></a>
+	                	<a href="player.php?id=<? echo $result["playerId"]; ?>">
+		                	<span class="d-sm-inline d-md-none"><? echo getFlagEmoji(strtoupper($result["playerCountryCode"])) . " "; ?></span>
+		                	<? echo $result["playerName"]; ?>
+		                </a>
 	                </td>
                 	<td class="text-center"><? echo $result["points"]; ?></td>
 <?		$pokemonSearch = ""; ?>
 <?		$showdownExport = ""; ?>
 <?		foreach($result["team"] as $pokemon) { ?>
-<?			$pokemonSearch .= decodePokemonLabel($pokemon) . ","; ?>
+<?			$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
 <?			$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
 <?		} ?>
-                	<td class="text-center" data-search="<? echo $pokemonSearch; ?>">
+                	<td class="text-center team-column" data-filter-value="<? echo $pokemonSearch; ?>">
 <?		foreach($result["team"] as $pokemon) { ?>
 						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
 <?		} ?>
@@ -116,42 +127,27 @@
 		}
 		
 		$(document).ready(function() {
-			PkSpr.process_dom();
-            $('.tttooltip').tooltipster();
-
-			resultTable = $("#results").DataTable({
-				responsive: true,
-				"order": [[ 0, "asc" ]],
-				"lengthMenu": [ [8, 16, 32, 64, 128, -1], ["Top 8", "Top 16", "Top 32", "Top 64", "Top 128", "All"] ]
+			$("#results").footable({
+		       'on': {
+		            'ready.ft.table': function(e, ft) {
+						PkSpr.process_dom();
+		            	$(".tttooltip").tooltipster();
+		          	}
+		        }
 			});
+		});
+				
+		$("#searchFilter").on("keyup", function() {
+			filterText = $(this).val();
+			filter = FooTable.get("#results").use(FooTable.Filtering);
 			
-			resultTable.on('responsive-display', function (e, datatable, row, showHide, update) {
-				$(document).ready(function() {
-					PkSpr.process_dom();
-					$('.tttooltip').tooltipster();
-				});
-			});
-			
-			resultTable.on('search.dt', function () {
-				$(document).ready(function() {
-					PkSpr.process_dom();
-					$('.tttooltip').tooltipster();
-				});
-			});
+			if ( filterText == "" || filterText.length < 3 ) {
+				filter.removeFilter("generic");
+			} else {
+				filter.addFilter("generic", filterText);
+			}			
 
-			resultTable.on('page.dt', function () {
-				$(document).ready(function() {
-					PkSpr.process_dom();
-					$('.tttooltip').tooltipster();
-				});
-			});
-
-			resultTable.on('order.dt', function () {
-				$(document).ready(function() {
-					PkSpr.process_dom();
-					$('.tttooltip').tooltipster();
-				});
-			});
+			filter.filter();
 		});
 	</script>
 </body>

@@ -29,8 +29,8 @@
     <script type="text/javascript" src="vendor/popper/js/popper.min.js"></script>
     <script type="text/javascript" src="vendor/bootstrap/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="vendor/pokesprite/js/pokesprite.min.js"></script>
-    <script type="text/javascript" src="vendor/datatables/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="vendor/datatables/js/dataTables.responsive.min.js"></script>
+	<script type="text/javascript" src="vendor/moment/js/moment.js"></script>
+    <script type="text/javascript" src="vendor/footable/js/footable.min.js"></script>
 	<script type="text/javascript" src="vendor/tooltipster/js/tooltipster.bundle.min.js"></script>
 	<script type="text/javascript" src="vendor/datepicker/js/bootstrap-datepicker.min.js"></script>
 	

@@ -117,3 +117,31 @@ table.dataTable.compact thead th, table.dataTable.compact thead td {
 .team-column {
 	width: 300px;
 }
+
+td.footable-sortable > span.fooicon, th.footable-sortable > span.fooicon {
+	right: auto !important; padding-left: 5px;
+}
+
+.footable-filtering-search {
+	display: none !important;
+}
+
+.footable-header {
+	border-bottom: #202020 1px solid;
+}
+
+th {
+	padding-right: 0px !important;
+}
+
+.footable tbody tr {
+	border-bottom: #d0d0d0 1px solid;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+	background-color: rgba(240, 240, 240, 0.75);	
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+	background-color: rgba(255, 255, 255, 0.75);	
+}
