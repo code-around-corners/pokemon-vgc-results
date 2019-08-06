@@ -76,7 +76,7 @@
 			    <th class="text-center">Tournament</th>
 			    <th class="text-center" data-breakpoints="all" data-name="season" data-type="number">Season</th>
 			    <th class="text-center" data-type="number">Position</th>
-			    <th class="text-center" data-breakpoints="xs" data-type="number">CP</th>
+			    <th class="text-center" data-breakpoints="xs sm" data-type="number">CP</th>
 			    <th class="text-center" data-breakpoints="xs" class="team-column">Team</th>
 			    <th class="text-center" data-breakpoints="xs sm">Export Team</th>
 		    </thead>
