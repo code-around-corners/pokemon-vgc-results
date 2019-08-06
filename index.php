@@ -6,10 +6,20 @@
 </head>
 
 <body>
-<?	include_once("resources/php/functions.php"); ?>
-<?	include_once("resources/php/config.php"); ?>
-<?	include_once("resources/php/navigation.php"); ?>
-<?	$tournaments = json_decode(file_get_contents("https://www.pokecal.com/json.php?filters=" . POKECAL_SEARCH_KEY), true); ?>
+<?php
+	include_once("resources/php/functions.php");
+	include_once("resources/php/config.php");
+	include_once("resources/php/navigation.php");
+	
+	$filters = array(
+	    "premierGroup"  => array("Regional Championship", "Special Championship", "International Championship"),
+	    "startDate"     => date("Y-m-d"),
+	    "product"		=> array("Video Game")
+	);
+	
+	$filtersEncoded = base64_encode(json_encode($filters));
+	$tournaments = json_decode(file_get_contents("https://www.pokecal.com/json.php?filters=" . $filtersEncoded), true); 
+?>
 
 <div class="container">
 	<hr />

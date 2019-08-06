@@ -6,6 +6,5 @@ define("DB_USER", "");
 define("DB_PASS", "");
 
 const API_KEY = array();
-const POKECAL_SEARCH_KEY = "";
 
 ?>
