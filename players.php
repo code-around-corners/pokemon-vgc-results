@@ -33,7 +33,7 @@
 			    <th></th>
 			    <th class="text-center">Country</th>
 			    <th class="text-center" data-sorted="true" data-direction="ASC">Player</th>
-			    <th class="text-center">Last Recorded Event</th>
+			    <th class="text-center" data-breakpoints="xs" >Last Recorded Event</th>
 			    <th class="text-center">Social Media</th>
 		    </thead>
 		    <tbody>

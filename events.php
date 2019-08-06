@@ -67,7 +67,10 @@
 	                </td>
                 	<td class="text-center"><? echo $event["season"]; ?></td>
                 	<td class="text-center"><? echo ($event["playerCount"] == 0 ? "Unknown" : $event["playerCount"]); ?></td>
-                	<td class="text-center"><a href="player.php?id=<? echo $event["eventWinnerId"]; ?>"><? echo $event["eventWinner"]; ?></a></td>
+                	<td class="text-center" data-sort-value="<? echo $event["eventWinner"]; ?>">
+	                	<span><? echo getFlagEmoji(strtoupper($event["eventWinnerCountryCode"])) . " "; ?></span>
+	                	<a href="player.php?id=<? echo $event["eventWinnerId"]; ?>"><? echo $event["eventWinner"]; ?></a>
+	                </td>
 				</tr>
 <?	} ?>
             </tbody>

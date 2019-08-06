@@ -275,6 +275,7 @@ const EVENT_LIST_SQL = "select
 		e.country AS country,
 		p.id AS eventWinnerId,
 		p.playerName AS eventWinner,
+		p.country AS eventWinnerCountryCode,
 		case when e.eventName = '' then concat(e.city,' ',et.label) else e.eventName end AS eventName,
 		et.points AS points,
 		e.playerCount AS playerCount,
@@ -372,16 +373,17 @@ function getEventDetails($eventSql) {
 	while ( $event = $events->fetch_assoc() ) {
 		$eventId = $event["eventId"];
 		$eventList[$eventId] = array(
-			"date"			=> date($event["date"]),
-			"city"			=> $event["city"],
-			"countryCode"	=> $event["country"],
-			"countryName"	=> VALID_COUNTRY_CODES[$event["country"]],
-			"eventWinnerId"	=> $event["eventWinnerId"],
-			"eventWinner"	=> $event["eventWinner"],
-			"eventName"		=> $event["eventName"],
-			"eventPoints"	=> json_decode($event["points"], true),
-			"playerCount"	=> (int)$event["playerCount"],
-			"season"		=> (int)$event["season"]
+			"date"						=> date($event["date"]),
+			"city"						=> $event["city"],
+			"countryCode"				=> $event["country"],
+			"countryName"				=> VALID_COUNTRY_CODES[$event["country"]],
+			"eventWinnerId"				=> $event["eventWinnerId"],
+			"eventWinner"				=> $event["eventWinner"],
+			"eventName"					=> $event["eventName"],
+			"eventWinnerCountryCode"	=> $event["eventWinnerCountryCode"],
+			"eventPoints"				=> json_decode($event["points"], true),
+			"playerCount"				=> (int)$event["playerCount"],
+			"season"					=> (int)$event["season"]
 		);
 	}
 	

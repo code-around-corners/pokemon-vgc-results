@@ -99,7 +99,7 @@
                 		<img src="resources/images/flags/<? echo strtolower($eventCountryCode); ?>.png" title="<? echo $eventCountryName; ?>" class="icon tttooltip" />
 <?			} ?>
                 	</td>
-					<td class="text-center">
+					<td class="text-center" data-sort-value="<? echo $playerData["data"]["results"]["events"][$eventId]["eventName"]; ?>">
 			            <a href="standings.php?id=<? echo $eventId; ?>">
 				            <span class="d-sm-inline d-md-none"><? echo getFlagEmoji(strtoupper($eventCountryCode)) . " "; ?></span>
 							<? echo $playerData["data"]["results"]["events"][$eventId]["eventName"]; ?>
