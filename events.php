@@ -38,14 +38,14 @@
     <hr />
 
     <div class="container">
-	    <table id="events" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true">
+	    <table id="events" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="true">
 		    <thead>
 			    <tr>
 				    <th></th>
 				    <th data-sorted="true" data-direction="DESC" class="text-center">Date</th>
 				    <th data-breakpoints="xs" class="text-center">Country</th>
 				    <th class="text-center">Event</th>
-				    <th data-breakpoints="xs" data-name="season" data-type="number" class="text-center">Season</th>
+				    <th data-visible="false" data-name="season" data-type="number" class="text-center">Season</th>
 				    <th class="text-center" data-type="number">Players</th>
 				    <th data-breakpoints="xs sm" class="text-center">Winner</th>
 			    </tr>
@@ -85,8 +85,17 @@
 		       'on': {
 		            'ready.ft.table': function(e, ft) {
 		            	$(".tttooltip").tooltipster();
-		          	}
-		        }
+		          	},
+		            'after.ft.paging': function(e, ft) {
+		            	$(".tttooltip").tooltipster();
+		          	},
+		            'after.ft.filtering': function(e, ft) {
+		            	$(".tttooltip").tooltipster();
+		          	},    	
+		            'after.ft.sorting': function(e, ft) {
+		            	$(".tttooltip").tooltipster();
+		          	}		          	
+		        },
 			});
 		});
 		

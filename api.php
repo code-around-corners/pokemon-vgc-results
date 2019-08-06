@@ -284,10 +284,8 @@ const EVENT_LIST_SQL = "select
 		events e
 			left join results r
 				on e.id = r.eventId
-			left join players pm
-				on r.playerId = pm.id
 			left join players p
-				on pm.mergedId = p.id
+				on r.playerId = p.id
 			inner join eventTypes et
 				on e.eventTypeId = et.id
 			inner join seasons s
@@ -310,10 +308,8 @@ from
 			on e.id = r.eventId
 		inner join eventTypes et
 			on e.eventTypeId = et.id
-		left join players pm
-			on r.playerId = pm.id
 		left join players p
-			on pm.mergedId = p.id ";
+			on r.playerId = p.id ";
 
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
@@ -468,23 +464,6 @@ function getSingleEventResults() {
 	];
 }
 
-function getActivePlayerId($playerId) {
-	global $mysqli;
-	
-	$sql = "Select mergedId From players Where id = " . $playerId;
-	$players = $mysqli->query($sql);
-	$activePlayerId = -1;
-	
-	if ( $player = $players->fetch_assoc() ) {
-		$activePlayerId = (int)$player["mergedId"];
-	}
-	
-	$players->free();
-	
-	return $activePlayerId;
-
-}
-
 function getSinglePlayer() {
 	global $mysqli;
 	
@@ -499,17 +478,7 @@ function getSinglePlayer() {
 		];
 	}
 	
-	$activePlayerId = getActivePlayerId($playerId);
-	
-	if ( $activePlayerId == -1 ) {
-		return [
-			"result"	=> "error",
-			"error"		=> "Invalid player ID.",
-			"status"	=> 400
-		];
-	}
-	
-	$sql = "Select * From players Where id = " . $activePlayerId;
+	$sql = "Select * From players Where id = " . $playerId;
 	
 	$playerInfo = $mysqli->query($sql);
 	
@@ -517,7 +486,7 @@ function getSinglePlayer() {
 	
 	if ( $player = $playerInfo->fetch_assoc() ) {
 		$playerData = array(
-			"playerId"		=> $activePlayerId,
+			"playerId"		=> $playerId,
 			"playerName"	=> $player["playerName"],
 			"countryCode"	=> $player["country"],
 			"countryName"	=> VALID_COUNTRY_CODES[$player["country"]],
@@ -543,7 +512,7 @@ function getSinglePlayer() {
 	
 	$playerInfo->free();
 	
-	$sql = EVENT_RESULTS_SQL . " Where playerId = " . $activePlayerId . ";";
+	$sql = EVENT_RESULTS_SQL . " Where playerId = " . $playerId . ";";
 
 	return [
 		"result"	=> "success",
@@ -565,39 +534,9 @@ function getAllPlayers() {
 		p.facebook,
 		p.youtube,
 		p.twitter,
-		p.twitch,
-		Max(e.date) as lastEventDate
-	From
-		events e
-			Inner Join results r
-				On e.id = r.eventId
-			Inner Join players pm
-				On r.playerId = pm.id
-			Inner Join players p
-				On pm.mergedId = p.id
-	Group By
-		p.id,
-		p.playerName,
-		p.country,
-		p.facebook,
-		p.youtube,
-		p.twitter,
 		p.twitch
-	Union
-	Select
-		p.id,
-		p.playerName,
-		p.country,
-		p.facebook,
-		p.youtube,
-		p.twitter,
-		p.twitch,
-		Null as lastEventDate
 	From
 		players p
-	Where
-		p.id = p.mergedId And
-		p.id Not In (Select r.playerId From results r)
 	";
 	
 	$playerInfo = $mysqli->query($sql);
@@ -628,6 +567,41 @@ function getAllPlayers() {
 		if ( $player["twitch"] != "" ) {
 			$playerData[$player["id"]]["socialMedia"]["twitch"] = $player["twitch"];
 		}
+	}
+	
+	$playerInfo->free();
+	
+	$sql = "SELECT
+	    pr.playerId,
+	    e.id As eventId,
+		e.eventName,
+		e.date,
+	    r.position,
+	    r.team
+	FROM
+		events e
+	    	Inner Join (
+	            SELECT
+	                Max(e.date) As lastEventDate,
+	                r.playerId As playerId 
+	            FROM
+	                events e
+	                    Inner Join results r
+	                        On e.id = r.eventId
+	            GROUP BY
+	                r.playerId
+	        ) pr
+	        	On e.date = pr.lastEventDate
+	        Inner Join results r
+	        	On r.playerId = pr.playerId
+	        		And e.id = r.eventId";
+
+	$playerInfo = $mysqli->query($sql);
+	
+	while ( $player = $playerInfo->fetch_assoc() ) {
+		$playerData[$player["playerId"]]["lastEventDate"] = $player["date"];
+		$playerData[$player["playerId"]]["lastTeam"] = $player["team"];
+		$playerData[$player["playerId"]]["lastEventId"] = $player["eventId"];
 	}
 	
 	$playerInfo->free();
@@ -739,8 +713,6 @@ function addNewPlayer() {
 	$stmt->execute();
 	$playerId = $stmt->insert_id;
 	$stmt->close();
-	
-	$mysqli->query("Update players Set mergedId = " . $playerId . " Where id = " . $playerId);
 	
 	return [
 		"result"	=> "success",

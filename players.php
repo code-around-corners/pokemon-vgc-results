@@ -28,12 +28,13 @@
     
     <hr />
     <div class="container">
-	    <table id="events" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true">
+	    <table id="events" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="true">
 		    <thead>
 			    <th></th>
-			    <th class="text-center">Country</th>
+			    <th class="text-center" data-breakpoints="xs sm">Country</th>
 			    <th class="text-center" data-sorted="true" data-direction="ASC">Player</th>
-			    <th class="text-center" data-breakpoints="xs" >Last Recorded Event</th>
+			    <th class="text-center" data-breakpoints="xs">Last Recorded Event</th>
+			    <th class="text-center team-column" data-breakpoints="xs">Last Recorded Team</th>
 			    <th class="text-center">Social Media</th>
 		    </thead>
 		    <tbody>
@@ -46,10 +47,24 @@
                 		<img src="resources/images/flags/<? echo strtolower($player["countryCode"]); ?>.png" title="<? echo $player["countryName"]; ?>" class="icon tttooltip" />
 <?		} ?>
                 	</td>
-                	<td class="text-center" data-sort-value="<? echo $player["playerName"]; ?>"><a href="player.php?id=<? echo $playerId; ?>"><? echo $player["playerName"]; ?></a></td>
+                	<td class="text-center" data-sort-value="<? echo $player["playerName"]; ?>">
+	                	<span class="d-sm-inline d-md-none"><? echo getFlagEmoji(strtoupper($player["countryCode"])) . " "; ?></span>
+	                	<a href="player.php?id=<? echo $playerId; ?>"><? echo $player["playerName"]; ?></a>
+	                </td>
 <?		if ( $player["lastEventDate"] != null ) { ?>
-                	<td class="text-center" data-sort-value="<? echo $player["lastEventDate"]; ?>"><? echo date("F jS Y", strtotime($player["lastEventDate"])); ?></td>
+                	<td class="text-center" data-sort-value="<? echo $player["lastEventDate"]; ?>">
+	                	<a href="standings.php?id=<? echo $player["lastEventId"]; ?>">
+		                	<? echo date("F jS Y", strtotime($player["lastEventDate"])); ?>
+	                	</a>
+	                </td>
+					<td class="text-center team-column">
+<?			$showdownExport = ""; ?>
+<?			foreach(json_decode($player["lastTeam"], true) as $pokemon) { ?>
+						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
+<?			} ?>
+					</td>
 <?		} else { ?>
+					<td class="text-center" data-sort-value=""></td>
 					<td class="text-center" data-sort-value=""></td>
 <?		} ?>
                 	<td class="text-center">
@@ -89,7 +104,19 @@
 		            'ready.ft.table': function(e, ft) {
 						PkSpr.process_dom();
 		            	$(".tttooltip").tooltipster();
-		          	}
+		          	},
+		            'after.ft.paging': function(e, ft) {
+						PkSpr.process_dom();
+		            	$(".tttooltip").tooltipster();
+		          	},
+		            'after.ft.filtering': function(e, ft) {
+						PkSpr.process_dom();
+		            	$(".tttooltip").tooltipster();
+		          	},    	
+		            'after.ft.sorting': function(e, ft) {
+						PkSpr.process_dom();
+		            	$(".tttooltip").tooltipster();
+		          	}		          	
 		        }
 			});
 		});

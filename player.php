@@ -68,7 +68,7 @@
     <hr />
 
     <div class="container">
-	    <table id="results" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true">
+	    <table id="results" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="true">
 		    <thead>
 			    <th></th>
 			    <th class="text-center" data-sorted="true" data-direction="DESC">Date</th>
@@ -164,7 +164,20 @@
 		            'ready.ft.table': function(e, ft) {
 						PkSpr.process_dom();
 		            	$(".tttooltip").tooltipster();
-		          	}
+		          	},
+		            'after.ft.paging': function(e, ft) {
+						PkSpr.process_dom();
+		            	$(".tttooltip").tooltipster();
+		          	},
+		            'after.ft.filtering': function(e, ft) {
+						PkSpr.process_dom();
+		            	$(".tttooltip").tooltipster();
+		          	},    	
+		            'after.ft.sorting': function(e, ft) {
+						PkSpr.process_dom();
+		            	$(".tttooltip").tooltipster();
+		          	}		          	
+
 		        }
 			});
 		});
