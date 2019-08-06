@@ -132,57 +132,48 @@ table.footable > tbody > tr.footable-detail-row > th {
 	box-sizing: border-box;
 }
 .fooicon-loader:before {
-    /*Old Glyph - content: "\e030";*/
-    content: "\f01e" !important;
+	content: "\f01e";
 }
 .fooicon-plus:before {
-    /*Old Glyph - content: "\2b";*/
-    content: "\f067" !important;
+	content: "\f067";
 }
 .fooicon-minus:before {
-    /*Old Glyph - content: "\2212";*/
-    content: "\f068" !important;
+	content: "\f068";
 }
 .fooicon-search:before {
-    /*Old Glyph - content: "\e003";*/
-    content: "\f002" !important;
+	content: "\f002";
 }
 .fooicon-remove:before {
-    /*Old Glyph - content: "\e014";*/
-    content: "\f00d" !important;
+	content: "\f00d";
 }
 .fooicon-sort:before {
-    /*Old Glyph - content: "\e150";*/
-    content: "\f0dc" !important;
+	content: "\f0dc";
 }
 .fooicon-sort-asc:before {
-    /*Old Glyph - content: "\e155";*/
-    content: "\f0de" !important;
+	content: "\f160";
 }
 .fooicon-sort-desc:before {
-    /*Old Glyph - content: "\e156";*/
-    content: "\f0dd" !important;
+	content: "\f161";
 }
 .fooicon-pencil:before {
-    /*Old Glyph - content: "\270f";*/
-    content: "\f040" !important;
+	content: "\f040";
 }
 .fooicon-trash:before {
-    /*Old Glyph - content: "\e020";*/
-    content: "\f1f8" !important;
+	content: "\f1f8";
 }
 .fooicon-eye-close:before {
-    /*Old Glyph - content: "\e106";*/
-    content: "\f070" !important;
+	content: "\f070";
 }
 .fooicon-flash:before {
-    /*Old Glyph - content: "\e162";*/
-    content: "\f0e7" !important;
+	content: "\f0e7";
 }
 .fooicon-cog:before {
-    /*Old Glyph - content: "\e019";*/
-    content: "\f013" !important;
+	content: "\f013";
 }
+.fooicon-stats:before {
+	content: "\f080";
+}
+
 
 table.footable > thead > tr.footable-filtering > th {
 	border-bottom-width: 1px;
@@ -348,4 +339,63 @@ table.footable-editing.footable-editing-show button.footable-add,
 table.footable-editing.footable-editing-show button.footable-hide,
 table.footable-editing.footable-editing-always-show button.footable-add {
 	display: inline-block;
+}
+
+.footable .pagination {
+	display: inline-block;
+	padding-left: 0;
+	margin: 20px 0;
+	border-radius: 4px;
+}
+.footable .pagination > li {
+	display: inline;
+}
+.footable .pagination > li:first-child > a,
+.footable .pagination > li:first-child > span {
+	margin-left: 0;
+	border-top-left-radius: 4px;
+	border-bottom-left-radius: 4px;
+}
+.footable .pagination > li > a,
+.footable .pagination > li > span {
+	position: relative;
+	float: left;
+	padding: 6px 12px;
+	margin-left: -1px;
+	line-height: 1.42857143;
+	color: #337ab7;
+	text-decoration: none;
+	background-color: #fff;
+	border: 1px solid #ddd;
+}
+.footable .pagination > li > a:hover,
+.footable .pagination > li > span:hover,
+.footable .pagination > li > a:focus,
+.footable .pagination > li > span:focus {
+	color: #23527c;
+	background-color: #eee;
+	border-color: #ddd;
+}
+.footable .pagination > .active > a,
+.footable .pagination > .active > span,
+.footable .pagination > .active > a:hover,
+.footable .pagination > .active > span:hover,
+.footable .pagination > .active > a:focus,
+.footable .pagination > .active > span:focus {
+	z-index: 2;
+	color: #fff;
+	cursor: default;
+	background-color: #337ab7;
+	border-color: #337ab7;
+}
+.footable .pagination > .disabled > span,
+.footable .pagination > .disabled > span:hover,
+.footable .pagination > .disabled > span:focus,
+.footable .pagination > .disabled > a,
+.footable .pagination > .disabled > a:hover,
+.footable .pagination > .disabled > a:focus {
+	color: #777;
+	cursor: not-allowed;
+	background-color: #fff;
+	border-color: #ddd;
 }
