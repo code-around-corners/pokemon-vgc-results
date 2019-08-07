@@ -27,6 +27,7 @@
     </div>
     
     <hr />
+    
     <div class="container">
 	    <table id="events" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="true">
 		    <thead>
