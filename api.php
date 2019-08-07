@@ -905,19 +905,19 @@ function deleteEvent() {
 function setSessionKey() {
 	session_start();
 	
-	if ( isset($_GET["apiKey"]) ) {
+	if ( isset($_GET["apiKey"]) && isset(API_KEY[$_GET["apiKey"]]) ) {
 		$_SESSION["apiKey"] = $_GET["apiKey"];
 
 		return [
 			"result"	=> "success",
 			"status"	=> 200,
-			"data"		=> null
+			"data"		=> API_KEY[$_GET["apiKey"]]
 		];
 	} else {
 		return [
 			"result"	=> "error",
 			"status"	=> 400,
-			"error"		=> "This API call requires a session key."
+			"error"		=> "This API call requires a valid API key."
 		];
 	}
 }

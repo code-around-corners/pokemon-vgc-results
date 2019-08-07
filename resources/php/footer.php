@@ -1,4 +1,10 @@
-
+<?php
+	if ( isset($_SESSION['apiKey']) && ! isset($_SESSION['apiUser']) ) {
+		$userName = json_decode(file_get_contents("https://results.trainertower.com/api.php?command=setSessionKey&apiKey=" . $_SESSION['apiKey']), true);
+		$_SESSION['apiUser'] = $userName["data"];
+	}
+?>
+	
 	<br />
     <footer>
         <nav class="navbar navbar-default fixed-bottom bg-dark text-light text-center" role="navigation">
@@ -11,8 +17,8 @@
 		        </div>
 		        <div class="col-md-4 d-none d-md-block text-center">
 <?	if ( session_status() == PHP_SESSION_ACTIVE ) { ?>
-					<span id="currentApiKey" class="text-muted">
-						<? echo ((isset($_SESSION['apiKey']) && $_SESSION['apiKey'] != "") ? $_SESSION['apiKey'] : "Set API Key"); ?>
+					<span id="currentApiKey" class="text-muted" data-api-key="<? echo $_SESSION['apiKey']; ?>">
+						<? echo ((isset($_SESSION['apiUser']) && $_SESSION['apiUser'] != "") ? $_SESSION['apiUser'] : "Set API Key"); ?>
 					</span>
 <?	} ?>
 		        </div>
@@ -41,8 +47,9 @@
 			$.get("api.php", {
 				command: "setSessionKey",
 				apiKey: apiKey
-			}).done(function() {
-				$("#currentApiKey").text(apiKey);
+			}).done(function(data) {
+				$("#currentApiKey").attr("data-api-key", apiKey);
+				$("#currentApiKey").text(data["data"]);
 			});
 		});
 	</script>
