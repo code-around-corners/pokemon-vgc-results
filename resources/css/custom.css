@@ -145,3 +145,25 @@ th {
 .table-striped tbody tr:nth-of-type(even) {
 	background-color: rgba(255, 255, 255, 0.75);	
 }
+
+.footable-details .hide-detail-row {
+	display: none !important;
+}
+
+.footable-details tbody tr:nth-of-type(even) {
+	background-color: rgba(240, 240, 240, 0.75);	
+}
+
+.footable-details tbody tr:nth-of-type(odd) {
+	background-color: rgba(255, 255, 255, 0.75);	
+}
+
+.footable-details tbody tr {
+	border-bottom: none;
+}
+
+@media screen and (min-width: 414px) {
+	.phone-line-break {
+		display: none;
+	}
+}

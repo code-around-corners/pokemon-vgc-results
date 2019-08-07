@@ -72,7 +72,7 @@
 		    <thead>
 			    <th></th>
 			    <th class="text-center" data-sorted="true" data-direction="DESC">Date</th>
-			    <th class="text-center" data-breakpoints="xs">Country</th>
+			    <th class="text-center" data-breakpoints="xs"><span class="hide-detail-row">Country</span></th>
 			    <th class="text-center">Tournament</th>
 			    <th class="text-center" data-breakpoints="all" data-name="season" data-type="number">Season</th>
 			    <th class="text-center" data-type="number">Position</th>
@@ -94,7 +94,7 @@
 					<td class="text-center" data-sort-value="<? echo $playerData["data"]["results"]["events"][$eventId]["date"]; ?>">
 						<? echo date("F jS Y", strtotime($playerData["data"]["results"]["events"][$eventId]["date"])); ?>
 					</td>
-                	<td class="text-center" data-filter-value="<? echo $eventCountryName; ?>">
+                	<td class="text-center hide-detail-row" data-filter-value="<? echo $eventCountryName; ?>">
 <?			if ( $eventCountryCode != "" ) { ?>
                 		<img src="resources/images/flags/<? echo strtolower($eventCountryCode); ?>.png" title="<? echo $eventCountryName; ?>" class="icon tttooltip" />
 <?			} ?>
@@ -110,8 +110,13 @@
 					<td class="text-center"><? echo $result["points"]; ?></td>
 					<td class="text-center team-column">
 <?			$showdownExport = ""; ?>
+<?			$pokemonCount = 0; ?>
 <?			foreach($result["team"] as $pokemon) { ?>
+<?				$pokemonCount++; ?>
 						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
+<?				if ( $pokemonCount == 3 ) { ?>
+						<br class="phone-line-break" />
+<?				} ?>
 <?				$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
 <?			} ?>
 					</td>

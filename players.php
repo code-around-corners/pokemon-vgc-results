@@ -31,7 +31,7 @@
 	    <table id="events" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="true">
 		    <thead>
 			    <th></th>
-			    <th class="text-center" data-breakpoints="xs sm">Country</th>
+			    <th class="text-center" data-breakpoints="xs sm"><span class="hide-detail-row">Country</span></th>
 			    <th class="text-center" data-sorted="true" data-direction="ASC">Player</th>
 			    <th class="text-center" data-breakpoints="xs">Last Recorded Event</th>
 			    <th class="text-center team-column" data-breakpoints="xs">Last Recorded Team</th>
@@ -42,7 +42,7 @@
 <?	foreach($playerList["data"] as $playerId => $player) { ?>
 				<tr>
 					<td></td>
-                	<td class="text-center" data-filter-value="<? echo $player["countryName"]; ?>">
+                	<td class="text-center hide-detail-row" data-filter-value="<? echo $player["countryName"]; ?>">
 <?		if ( $player["countryCode"] != "" ) { ?>
                 		<img src="resources/images/flags/<? echo strtolower($player["countryCode"]); ?>.png" title="<? echo $player["countryName"]; ?>" class="icon tttooltip" />
 <?		} ?>
@@ -59,8 +59,13 @@
 	                </td>
 					<td class="text-center team-column">
 <?			$showdownExport = ""; ?>
+<?			$pokemonCount = 0; ?>
 <?			foreach(json_decode($player["lastTeam"], true) as $pokemon) { ?>
+<?				$pokemonCount++; ?>
 						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
+<?				if ( $pokemonCount == 3 ) { ?>
+						<br class="phone-line-break" />
+<?				} ?>
 <?			} ?>
 					</td>
 <?		} else { ?>

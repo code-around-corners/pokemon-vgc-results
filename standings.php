@@ -23,66 +23,71 @@
 <?		$eventCountry = $resultData["data"]["events"][$eventId]["countryName"];	?>
 <?	} ?>
 
-    <div class="grey-header container">
-        <h4 class="event-name">
-	        <img src="resources/images/flags/<? echo $eventCountryCode; ?>.png" alt="<? echo $eventCountry; ?>" class="icon" />&nbsp;
-	        <b><? echo $eventName; ?></b>
-	    </h4>
-        <h6 class="event-name">
-	        <? echo date("F jS Y", strtotime($resultData["data"]["events"][$eventId]["date"])); ?>
+	<div class="grey-header container">
+		<h4 class="event-name">
+			 <img src="resources/images/flags/<? echo $eventCountryCode; ?>.png" alt="<? echo $eventCountry; ?>" class="icon" />&nbsp;
+			 <b><? echo $eventName; ?></b>
+		 </h4>
+		<h6 class="event-name">
+			 <? echo date("F jS Y", strtotime($resultData["data"]["events"][$eventId]["date"])); ?>
 <?	if ( $resultData["data"]["events"][$eventId]["playerCount"] > 0 ) { ?>
-	        | <? echo $resultData["data"]["events"][$eventId]["playerCount"]; ?> Players
+			 | <? echo $resultData["data"]["events"][$eventId]["playerCount"]; ?> Players
 <?	} ?>
-	    </h6>
-    </div>
+		 </h6>
+	</div>
 
-    <div class="container">
+	<div class="container">
 		<div class="input-group input-group-sm">
 			<input type="text" class="form-control" aria-label="Text input with dropdown button" placeholder="Search..." id="searchFilter" />
 		</div>
-    </div>
+	</div>
 
-    <div class="container">
-	    <table id="results" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="false">
-		    <thead>
-			    <th></th>
-			    <th class="text-center" data-sorted="true" data-direction="ASC" data-type="number">Position</th>
-			    <th class="text-center" data-breakpoints="xs">Country</th>
-			    <th class="text-center">Player</th>
-			    <th class="text-center" data-type="number">CP</th>
-			    <th class="text-center" data-breakpoints="xs">Team</th>
-			    <th class="text-center" data-breakpoints="xs sm">Export Team</th>
-		    </thead>
-		    <tbody>
-        
+	<div class="container">
+		 <table id="results" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="false">
+			  <thead>
+				   <th></th>
+				   <th class="text-center" data-sorted="true" data-direction="ASC" data-type="number">Position</th>
+				   <th class="text-center" data-breakpoints="xs sm"><span class="hide-detail-row">Country</span></th>
+				   <th class="text-center">Player</th>
+				   <th class="text-center" data-type="number">CP</th>
+				   <th class="text-center" data-breakpoints="xs">Team</th>
+				   <th class="text-center" data-breakpoints="xs sm">Export Team</th>
+			  </thead>
+			  <tbody>
+		
 <?	foreach($resultData["data"]["results"][$eventId] as $position => $result) { ?>
 <?		if ( $result["points"] == 0 && $showOnlyCp ) continue; ?>
 				<tr>
 					<td></td>
-                	<td class="text-center"><? echo $position; ?></td>
-                	<td class="text-center" data-filter-value="<? echo $result["playerCountryName"]; ?>">
+					<td class="text-center"><? echo $position; ?></td>
+					<td class="text-center hide-detail-row" data-filter-value="<? echo $result["playerCountryName"]; ?>">
 <?		if ( $result["playerCountryCode"] != "" ) { ?>
-                		<img src="resources/images/flags/<? echo strtolower($result["playerCountryCode"]); ?>.png" title="<? echo $result["playerCountryName"]; ?>" class="icon tttooltip"/>
+						<img src="resources/images/flags/<? echo strtolower($result["playerCountryCode"]); ?>.png" title="<? echo $result["playerCountryName"]; ?>" class="icon tttooltip"/>
 <?		} ?>
-                	</td>
-                	<td class="text-center">
-	                	<a href="player.php?id=<? echo $result["playerId"]; ?>">
-		                	<span class="d-sm-inline d-md-none"><? echo getFlagEmoji(strtoupper($result["playerCountryCode"])) . " "; ?></span>
-		                	<? echo $result["playerName"]; ?>
-		                </a>
-	                </td>
-                	<td class="text-center"><? echo $result["points"]; ?></td>
+					</td>
+					<td class="text-center">
+					 	<a href="player.php?id=<? echo $result["playerId"]; ?>">
+						  	<span class="d-md-inline d-lg-none"><? echo getFlagEmoji(strtoupper($result["playerCountryCode"])) . " "; ?></span>
+						  	<? echo $result["playerName"]; ?>
+						  </a>
+					 </td>
+					<td class="text-center"><? echo $result["points"]; ?></td>
 <?		$pokemonSearch = ""; ?>
 <?		$showdownExport = ""; ?>
 <?		foreach($result["team"] as $pokemon) { ?>
 <?			$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
 <?			$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
 <?		} ?>
-                	<td class="text-center team-column" data-filter-value="<? echo $pokemonSearch; ?>">
+					<td class="text-center team-column" data-filter-value="<? echo $pokemonSearch; ?>">
+<?		$pokemonCount = 0; ?>
 <?		foreach($result["team"] as $pokemon) { ?>
+<?			$pokemonCount++; ?>
 						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
+<?			if ( $pokemonCount == 3 ) { ?>
+						<br class="phone-line-break" />
+<?			} ?>
 <?		} ?>
-                	</td>
+					</td>
 					<td class="text-center">
 						<a href="javascript:showExportBox('<? echo base64_encode($showdownExport); ?>');"><i class="fas fas-large fa-globe tttooltip" title="Export Pokemon Showdown"></i></a>
 <?		if ( $result["rentalLink"] != "" ) { ?>
@@ -91,9 +96,9 @@
 					</td>
 				</tr>
 <?	} ?>
-            </tbody>
-        </table>
-    </div>
+			</tbody>
+		</table>
+	</div>
 	<div id="psExport" class="modal" tabindex="-1" role="dialog">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
@@ -128,24 +133,24 @@
 		
 		$(document).ready(function() {
 			$("#results").footable({
-		       'on': {
-		            'ready.ft.table': function(e, ft) {
+				 'on': {
+					  'ready.ft.table': function(e, ft) {
 						PkSpr.process_dom();
-		            	$(".tttooltip").tooltipster();
-		          	},
-		            'after.ft.paging': function(e, ft) {
+					  	$(".tttooltip").tooltipster();
+						},
+					  'after.ft.paging': function(e, ft) {
 						PkSpr.process_dom();
-		            	$(".tttooltip").tooltipster();
-		          	},
-		            'after.ft.filtering': function(e, ft) {
+					  	$(".tttooltip").tooltipster();
+						},
+					  'after.ft.filtering': function(e, ft) {
 						PkSpr.process_dom();
-		            	$(".tttooltip").tooltipster();
-		          	},    	
-		            'after.ft.sorting': function(e, ft) {
+					  	$(".tttooltip").tooltipster();
+						},	   	
+					  'after.ft.sorting': function(e, ft) {
 						PkSpr.process_dom();
-		            	$(".tttooltip").tooltipster();
-		          	}		          	
-		        }
+					  	$(".tttooltip").tooltipster();
+						}				  	
+				  }
 			});
 		});
 				

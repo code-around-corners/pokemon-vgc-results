@@ -43,7 +43,7 @@
 			    <tr>
 				    <th></th>
 				    <th data-sorted="true" data-direction="DESC" class="text-center">Date</th>
-				    <th data-breakpoints="xs" class="text-center">Country</th>
+				    <th data-breakpoints="xs" class="text-center"><span class="hide-detail-row">Country</span></th>
 				    <th class="text-center">Event</th>
 				    <th data-visible="false" data-name="season" data-type="number" class="text-center">Season</th>
 				    <th class="text-center" data-type="number">Players</th>
@@ -56,7 +56,7 @@
 				<tr>
 					<td></td>
                 	<td class="text-center" data-sort-value="<? echo $event["date"]; ?>"><? echo date("F jS Y", strtotime($event["date"])); ?></td>
-                	<td class="text-center" data-filter-value="<? echo $event["countryName"]; ?>">
+                	<td class="text-center hide-detail-row" data-filter-value="<? echo $event["countryName"]; ?>">
 <?		if ( $event["countryCode"] != "" ) { ?>
                 		<img src="resources/images/flags/<? echo strtolower($event["countryCode"]); ?>.png" title="<? echo $event["countryName"]; ?>" class="icon tttooltip" />
 <?		} ?>
