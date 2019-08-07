@@ -90,9 +90,9 @@
 		    creating the event. If you see a player marked as new you expect it already in the system, please check the
 		    spelling of their name.
 	    </p>
-	    <table id="validation" class="display stripe compact responsive nowrap w-100">
+	    <table id="validation" class="w-100 toggle-circle-filled table-striped" data-sorting="false" data-filtering="false" data-paging="false">
 		    <thead>
-			    <th class="text-center" width=10%>Position</th>
+			    <th class="text-center" data-sorted="true" data-direction="ASC" data-type="number" width=10%>Position</th>
 			    <th class="text-center" width=30%>Player</th>
 			    <th class="text-center" width=60%>Team</th>
 		    </thead>
@@ -125,7 +125,10 @@
 <?	} ?>
 		    </tbody>
 	    </table>
-	    <div class="text-center">
+	    
+	    <hr />
+	    
+	    <div class="container text-center">
 		    <button data-toggle="modal" data-target="#playerCreation">Add New Players</button>
 <?	if ( $allMapped ) { ?>
 		    <button data-toggle="modal" data-target="#eventCreation">Enter Event Details</button>
@@ -147,11 +150,11 @@
 						once you have added the new players you will need to revalidate your input data to allow
 						the system to pick them up.
 					</p>
-					<table id="playerAdd" class="display stripe compact responsive nowrap w-100">
+					<table id="playerAdd" class="w-100 toggle-circle-filled table-striped" data-sorting="true">
 						<thead>
-							<th>Player Name</th>
-							<th>Country</th>
-							<th>Twitter</th>
+							<th data-name="playerName" data-sorted="true">Player Name</th>
+							<th data-name="country">Country</th>
+							<th data-name="twitter">Twitter</th>
 						</thead>
 						<tbody>
 						</tbody>
@@ -289,8 +292,6 @@
 		$("#playerCreation").on("show.bs.modal", function() {
 			playerList = getNewPlayerList();
 			
-			playerTable.rows().remove();
-			
 			countrySelect = "<select>";
 			countrySelect += "<option value='xxx'>Unknown</option>";
 <?	foreach($countryList["data"] as $countryCode => $countryName) { ?>
@@ -298,15 +299,18 @@
 <?	} ?>
 			countrySelect += "</select>";
 			
+			var playerTable = FooTable.get("#playerAdd");
+			
+			var newRows = [];
 			$.each(playerList, function(position, playerName) {
-				playerTable.row.add([
-					playerName,
-					countrySelect,
-					"<input type='text' style='w-100' />"
-				]);
+				newRows[newRows.length] = {
+					"playerName": playerName,
+					"country": countrySelect,
+					"twitter": "<input type='text' class='form-control form-control-sm w-100' />"
+				};
 			});
 			
-			playerTable.draw();
+			playerTable.rows.load(newRows);
 		});
 		
 		function uploadNewPlayers() {
@@ -409,18 +413,8 @@
 	            format: 'yyyy-mm-dd'
 			});
 			
-			resultTable = $("#validation").DataTable({
-				responsive: true,
-				"order": [[ 0, "asc" ]],
-				"paging": false,
-				"searching": false
-			});
-			
-			playerTable = $("#playerAdd").DataTable({
-				responsive: true,
-				"paging": false,
-				"searching": false
-			});
+			resultTable = $("#validation").footable();			
+			playerTable = $("#playerAdd").footable();
 		});
 	</script>
 </body>
