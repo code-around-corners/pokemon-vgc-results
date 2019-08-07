@@ -709,7 +709,7 @@ function addNewPlayer() {
 	}
 	
 	$stmt = $mysqli->prepare("Insert Into players ( playerName, country, twitter, api ) Values ( ?, ?, ?, ? );");
-	$stmt->bind_param("sss", $playerName, $countryCode, $twitter, $apiKey);
+	$stmt->bind_param("ssss", $playerName, $countryCode, $twitter, $apiKey);
 	$stmt->execute();
 	$playerId = $stmt->insert_id;
 	$stmt->close();
@@ -794,7 +794,7 @@ function addNewEvent() {
 	if ( $playerCount == "" ) $playerCount = 0;
 	
 	$stmt = $mysqli->prepare("Insert Into events ( eventName, country, date, eventTypeId, playerCount, api ) Values ( ?, ?, ?, ?, ?, ? );");
-	$stmt->bind_param("sssii", $eventName, $countryCode, $eventDate, $eventTypeId, $playerCount, $apiKey);
+	$stmt->bind_param("sssiis", $eventName, $countryCode, $eventDate, $eventTypeId, $playerCount, $apiKey);
 	$stmt->execute();
 	$eventId = $stmt->insert_id;
 	$stmt->close();
@@ -847,7 +847,7 @@ function addNewResult() {
 	$encodedTeam = json_encode($team);
 	
 	$stmt = $mysqli->prepare("Insert Into results ( eventId, playerId, position, team, api ) Values ( ?, ?, ?, ?, ? );");
-	$stmt->bind_param("iiis", $eventId, $playerId, $position, $encodedTeam, $apiKey);
+	$stmt->bind_param("iiiss", $eventId, $playerId, $position, $encodedTeam, $apiKey);
 	$stmt->execute();
 	echo $stmt->error;
 	$resultId = $stmt->insert_id;
