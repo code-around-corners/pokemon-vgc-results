@@ -27,7 +27,7 @@ const VALID_COUNTRY_CODES = array(
 	"AND" => "Andorra",
 	"AGO" => "Angola",
 	"AIA" => "Anguilla",
-	"ATA" => "Antarctica ",
+	"ATA" => "Antarctica",
 	"ATG" => "Antigua and Barbuda",
 	"ARG" => "Argentina",
 	"ARM" => "Armenia",
@@ -60,7 +60,7 @@ const VALID_COUNTRY_CODES = array(
 	"CMR" => "Cameroon",
 	"CAN" => "Canada",
 	"CPV" => "Cape Verde",
-	"CYM" => "Cayman Islands ",
+	"CYM" => "Cayman Islands",
 	"CAF" => "Central African Republic",
 	"TCD" => "Chad",
 	"CHL" => "Chile",
@@ -71,9 +71,9 @@ const VALID_COUNTRY_CODES = array(
 	"CCK" => "Cocos (Keeling) Islands",
 	"COL" => "Colombia",
 	"COM" => "Comoros",
-	"COG" => "Congo (Brazzaville) ",
+	"COG" => "Congo(Brazzaville)",
 	"COD" => "Congo, (Kinshasa)",
-	"COK" => "Cook Islands ",
+	"COK" => "Cook Islands",
 	"CRI" => "Costa Rica",
 	"CIV" => "Côte d'Ivoire",
 	"HRV" => "Croatia",
@@ -91,7 +91,7 @@ const VALID_COUNTRY_CODES = array(
 	"ERI" => "Eritrea",
 	"EST" => "Estonia",
 	"ETH" => "Ethiopia",
-	"FLK" => "Falkland Islands (Malvinas) ",
+	"FLK" => "Falkland Islands (Malvinas)",
 	"FRO" => "Faroe Islands",
 	"FJI" => "Fiji",
 	"FIN" => "Finland",
@@ -104,7 +104,7 @@ const VALID_COUNTRY_CODES = array(
 	"GEO" => "Georgia",
 	"DEU" => "Germany",
 	"GHA" => "Ghana",
-	"GIB" => "Gibraltar ",
+	"GIB" => "Gibraltar",
 	"GRC" => "Greece",
 	"GRL" => "Greenland",
 	"GRD" => "Grenada",
@@ -126,7 +126,7 @@ const VALID_COUNTRY_CODES = array(
 	"IRN" => "Iran",
 	"IRQ" => "Iraq",
 	"IRL" => "Ireland",
-	"IMN" => "Isle of Man ",
+	"IMN" => "Isle of Man",
 	"ISR" => "Israel",
 	"ITA" => "Italy",
 	"JAM" => "Jamaica",
@@ -181,7 +181,7 @@ const VALID_COUNTRY_CODES = array(
 	"NIC" => "Nicaragua",
 	"NER" => "Niger",
 	"NGA" => "Nigeria",
-	"NIU" => "Niue ",
+	"NIU" => "Niue",
 	"NFK" => "Norfolk Island",
 	"MNP" => "Northern Mariana Islands",
 	"NOR" => "Norway",
@@ -241,7 +241,7 @@ const VALID_COUNTRY_CODES = array(
 	"THA" => "Thailand",
 	"TLS" => "Timor-Leste",
 	"TGO" => "Togo",
-	"TKL" => "Tokelau ",
+	"TKL" => "Tokelau",
 	"TON" => "Tonga",
 	"TTO" => "Trinidad and Tobago",
 	"TUN" => "Tunisia",
@@ -401,7 +401,7 @@ function getEventResultData($sql) {
 		
 		if ( ! isset($resultsList[$eventId]) ) {
 			$resultsList[$eventId] = array();
-			$eventSql .= ", " . $eventId;
+			$eventSql .= ", " . $mysqli->real_escape_string($eventId);
 		}
 		
 		$resultsList[$eventId][$position] = array(
@@ -478,8 +478,7 @@ function getSinglePlayer() {
 		];
 	}
 	
-	$sql = "Select * From players Where id = " . $playerId;
-	
+	$sql = "Select * From players Where id = " . $mysqli->real_escape_string($playerId);
 	$playerInfo = $mysqli->query($sql);
 	
 	$playerData = array();
@@ -512,7 +511,7 @@ function getSinglePlayer() {
 	
 	$playerInfo->free();
 	
-	$sql = EVENT_RESULTS_SQL . " Where playerId = " . $playerId . ";";
+	$sql = EVENT_RESULTS_SQL . " Where playerId = " . $mysqli->real_escape_string($playerId) . ";";
 
 	return [
 		"result"	=> "success",
