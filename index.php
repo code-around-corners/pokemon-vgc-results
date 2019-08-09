@@ -18,7 +18,7 @@
 	);
 	
 	$filtersEncoded = base64_encode(json_encode($filters));
-	$tournaments = json_decode(file_get_contents("https://www.pokecal.com/json.php?filters=" . $filtersEncoded), true); 
+	$tournaments = json_decode(file_get_contents("https://www.pokecal.com/api.php?command=listEvents&filters=" . $filtersEncoded), true); 
 ?>
 
 <div class="container">
@@ -39,7 +39,7 @@
 				<div class="card">
 					<a class="twitter-timeline" data-tweet-limit=1 href="https://twitter.com/TrainerTower?ref_src=twsrc%5Etfw&"></a>
 				</div>
-<?	foreach($tournaments as $tournament) { ?>
+<?	foreach($tournaments["data"] as $tournament) { ?>
 <?		$address = ""; ?>
 <?		foreach ( array("venueName", "addressLine1", "addressLine2", "city", "provinceState", "countryName", "postalZipCode") as $field ) { ?>
 <?			if ( isset($tournament[$field]) && $tournament[$field] != "" ) { ?>
