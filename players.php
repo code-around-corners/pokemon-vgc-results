@@ -18,15 +18,7 @@
 	    won't be 100% accurate but it reflects the latest event we have on file).
     </div>
     
-    <hr />
-    
-    <div class="container">
-		<div class="input-group input-group-sm">
-			<input type="text" class="form-control" aria-label="Text input with dropdown button" placeholder="Search..." id="searchFilter" />
-		</div>
-    </div>
-    
-    <hr />
+<?	makeSearchBarHtml($periodData); ?>
     
     <div class="container">
 	    <table id="events" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="true">
@@ -58,8 +50,13 @@
 		                	<? echo date("F jS Y", strtotime($player["lastEventDate"])); ?>
 	                	</a>
 	                </td>
-					<td class="text-center team-column">
+<?			$pokemonSearch = ""; ?>
 <?			$showdownExport = ""; ?>
+<?			foreach(json_decode($player["lastTeam"], true) as $pokemon) { ?>
+<?				$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
+<?				$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
+<?			} ?>
+					<td class="text-center team-column" data-filter-value="<? echo $pokemonSearch; ?>">
 <?			$pokemonCount = 0; ?>
 <?			foreach(json_decode($player["lastTeam"], true) as $pokemon) { ?>
 <?				$pokemonCount++; ?>

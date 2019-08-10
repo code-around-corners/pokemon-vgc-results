@@ -36,15 +36,7 @@
 		 </h6>
 	</div>
 	
-	<hr />
-
-	<div class="container">
-		<div class="input-group input-group-sm">
-			<input type="text" class="form-control" aria-label="Text input with dropdown button" placeholder="Search..." id="searchFilter" />
-		</div>
-	</div>
-	
-	<hr />
+<?	makeSearchBarHtml(null); ?>
 
 	<div class="container">
 		 <table id="results" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="false">

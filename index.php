@@ -11,6 +11,11 @@
 	include_once("resources/php/config.php");
 	include_once("resources/php/navigation.php");
 	
+	if ( isset($_GET["debug"]) ) {
+		makeSeasonDropdownHtml();
+		exit();
+	}
+	
 	$filters = array(
 	    "premierGroup"  => array("Regional Championship", "Special Championship", "International Championship"),
 	    "startDate"     => date("Y-m-d"),

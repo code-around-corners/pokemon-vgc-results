@@ -1948,4 +1948,161 @@ function getFlagEmoji($countryCode) {
 	return $flag;
 }
 
+function getSeasonDropdownData() {
+	$seasonPeriods = json_decode(file_get_contents("https://pokecal-dev.codearoundcorners.com/api.php?command=listPeriods&product=Video%20Game&onlyFormat"), true);
+	
+	$maximumSeason = 0;	
+	$maximumHistory = 3;
+
+	$searchData = array();
+	
+	foreach( $seasonPeriods["data"] as $season => $seasonPeriod ) {
+		if ( $season > $maximumSeason ) $maximumSeason = $season;
+	}
+	
+	for( $currentSeason = $maximumSeason; $currentSeason > ($maximumSeason - $maximumHistory); $currentSeason-- ) {
+		$searchData[$currentSeason] = array();
+		
+		foreach( $seasonPeriods["data"] as $season => $seasonPeriod ) {
+			if ( $season == $currentSeason ) {
+				foreach ( $seasonPeriod["periods"] as $periodId => $period ) {
+					$arrayId = $period["startDate"] . "-" . $periodId;
+					$searchData[$currentSeason][$arrayId] = $period;
+				}
+			}
+		}
+	}
+	
+	return array(
+		"maximumSeason"		=> $maximumSeason,
+		"maximumHistory"	=> $maximumHistory,
+		"periods"			=> $seasonPeriods,
+		"data"				=> $searchData
+	);
+}
+
+function makeSearchBarHtml($periodData) {
+?>
+	<hr />
+    <div class="container">
+		<div class="input-group input-group-sm">
+<?
+	if ( $periodData !== null ) {
+?>
+			<div class="input-group-prepend">
+				<button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="current-season">All Seasons</button>
+				<? echo makeSeasonDropdownHtml($periodData); ?>
+			</div>
+<?
+	}
+?>
+			<input type="text" class="form-control" aria-label="Search" placeholder="Search..." id="searchFilter" />
+			<div class="input-group-append">
+				<button class="btn btn-primary" type="button"><i class="fas fa-search"></i></button>
+			</div>
+  		</div>
+    </div>
+    <hr />
+<?
+}
+
+function makeSeasonDropdownHtml($periodData) {
+	$dropdownHtml = "<a href='#!' class='dropdown-item season-selection' data-season='-1'>All Seasons</a>\n";
+	
+	for( $currentSeason = $periodData["maximumSeason"]; $currentSeason > ($periodData["maximumSeason"] - $periodData["maximumHistory"]); $currentSeason-- ) {
+		$dropdownHtml .= "<h6 class='dropdown-header'>" . $currentSeason . " Season</h6>\n";
+		
+		if ( isset($periodData["periods"]["data"][$currentSeason]) ) {
+			$startDate = $periodData["periods"]["data"][$currentSeason]["startDate"];
+			$endDate = $periodData["periods"]["data"][$currentSeason]["endDate"];
+		} else {
+			$startDate = "";
+			$endDate = "";
+		}
+		
+		$dropdownHtml .= "<a href='#!' class='dropdown-item season-selection' data-season='" . $currentSeason . "' data-start='";
+		$dropdownHtml .= $startDate . "' data-end='" . $endDate . "'>All Events</a>\n";
+		
+		foreach($periodData["data"][$currentSeason] as $arrayId => $period) {
+			$startDate = $period["startDate"];
+			$endDate = $period["endDate"];
+			$periodName = $period["name"];
+		
+			$dropdownHtml .= "<a href='#!' class='dropdown-item season-selection' data-season='" . $currentSeason . "' data-start='";
+			$dropdownHtml .= $startDate . "' data-end='" . $endDate . "'>" . $periodName . "</a>\n";
+		}
+	}
+	
+	$dropdownHtml .= "<h6 class='dropdown-header'>Older Events</h6>";
+	$dropdownHtml .= "<a href='#!' class='dropdown-item season-selection' data-season='-2'>Older Seasons</a>\n";
+	
+	return "<div class='dropdown-menu' style='font-size: 12px;'>" . $dropdownHtml . "</div>";
+}
+
+function makeSeasonDropdownJs($periodData) {
+?>
+	<script type="text/javascript">
+<?
+	if ( $periodData !== null ) {
+		$firstSeason = 2000;
+		$olderSeasonFilter = $firstSeason;
+		
+		for( $season = ($firstSeason + 1); $season <= ($periodData["maximumSeason"] - $periodData["maximumHistory"]); $season++ ) {
+			$olderSeasonFilter .= " OR " . $season;
+		}
+?>
+		$(".season-selection").click(function() {
+			var season = $(this).attr("data-season");
+			var dateStart = $(this).attr("data-start");
+			var dateEnd = $(this).attr("data-end");
+			var dataLabel = $(this).text();
+			
+			if ( season > 0 ) {
+				$("#current-season").text("(" + season + ") " + $(this).text());
+			} else {
+				$("#current-season").text($(this).text());
+			}
+			
+			filter = FooTable.get(".period-search").use(FooTable.Filtering);
+			filter.removeFilter("season");
+			
+			if ( season == -1 ) {
+				
+			} else if ( season == -2 ) {
+				filter.addFilter("season", "<? echo $olderSeasonFilter; ?>", ["season"]);
+			} else if ( dateStart == "" && dateEnd == "" ) {
+				filter.addFilter("season", season, ["season"]);
+			} else {
+				var filterText = dateStart.replace(/\-/g, "");
+				var checkDate = new Date(dateStart);
+				var lastDate = new Date(dateEnd);
+				
+				while ( checkDate <= lastDate ) {
+					checkDate.setDate(checkDate.getDate() + 1);
+					filterText += " OR " + checkDate.toISOString().substr(0, 10).replace(/\-/g, "");
+				}
+				
+				filter.addFilter("season", filterText, ["eventDate"]);
+			}
+			
+			filter.filter();
+		});
+<?
+	}
+?>
+		$("#searchFilter").on("change", function() {
+			filterText = $(this).val();
+			filter = FooTable.get("#events").use(FooTable.Filtering);
+			
+			if ( filterText == "" || filterText.length < 3 ) {
+				filter.removeFilter("generic");
+			} else {
+				filter.addFilter("generic", filterText);
+			}			
+
+			filter.filter();
+		});
+	</script>
+<?php
+}
 ?>

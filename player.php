@@ -11,6 +11,7 @@
 
 <?	$playerId = -1; ?>
 <?	$playerData = array(); ?>
+<?	$periodData = getSeasonDropdownData(); ?>
 
 <?	if ( isset($_GET["id"]) ) { ?>
 <?		$playerId = (int)$_GET["id"]; ?>
@@ -45,33 +46,14 @@
 <?	} ?>
         </h4>
     </div>
-
-    <hr />
     
-    <div class="container">
-		<div class="input-group input-group-sm">
-			<div class="input-group-prepend">
-				<button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="current-season">All Seasons</button>
-				<div class="dropdown-menu">
-					<a class="dropdown-item season-selection" href="#" data-season="-1">All Seasons</a>
-					<a class="dropdown-item season-selection" href="#" data-season="2020">2020</a>
-					<a class="dropdown-item season-selection" href="#" data-season="2019">2019</a>
-					<a class="dropdown-item season-selection" href="#" data-season="2018">2018</a>
-					<a class="dropdown-item season-selection" href="#" data-season="2017">2017</a>
-					<a class="dropdown-item season-selection" href="#" data-season="-2">Past Seasons</a>
-				</div>
-			</div>
-			<input type="text" class="form-control" aria-label="Text input with dropdown button" placeholder="Search..." id="searchFilter" />
-		</div>
-    </div>
-    
-    <hr />
+<?	makeSearchBarHtml(null); ?>
 
     <div class="container">
-	    <table id="results" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="true">
+	    <table id="results" class="w-100 toggle-circle-filled table-striped period-search" data-sorting="true" data-filtering="true" data-paging="true">
 		    <thead>
 			    <th></th>
-			    <th class="text-center" data-sorted="true" data-direction="DESC">Date</th>
+			    <th class="text-center" data-name="eventDate" data-sorted="true" data-direction="DESC">Date</th>
 			    <th class="text-center" data-breakpoints="xs"><span class="hide-detail-row">Country</span></th>
 			    <th class="text-center">Tournament</th>
 			    <th class="text-center" data-breakpoints="all" data-name="season" data-type="number">Season</th>
@@ -91,7 +73,7 @@
 
 				<tr>
 					<td></td>
-					<td class="text-center" data-sort-value="<? echo $playerData["data"]["results"]["events"][$eventId]["date"]; ?>">
+					<td class="text-center" data-sort-value="<? echo $playerData["data"]["results"]["events"][$eventId]["date"]; ?>" data-filter-value="<? echo str_replace("-", "", $playerData["data"]["results"]["events"][$eventId]["date"]); ?>">
 						<? echo date("F jS Y", strtotime($playerData["data"]["results"]["events"][$eventId]["date"])); ?>
 					</td>
                 	<td class="text-center hide-detail-row" data-filter-value="<? echo $eventCountryName; ?>">
@@ -186,37 +168,7 @@
 		        }
 			});
 		});
-		
-		$(".season-selection").click(function() {
-			var seasonId = $(this).attr("data-season");
-			
-			$("#current-season").text($(this).text());
-			
-			filter = FooTable.get("#results").use(FooTable.Filtering);
-			
-			if ( seasonId == -1 ) {
-				filter.removeFilter("season");
-			} else if ( seasonId == -2 ) {
-				filter.addFilter("season", "2010 OR 2011 OR 2012 OR 2013 OR 2014 OR 2015 OR 2016", ["season"]);
-			} else {
-				filter.addFilter("season", seasonId, ["season"]);
-			}
-			
-			filter.filter();
-		});
-		
-		$("#searchFilter").on("keyup", function() {
-			filterText = $(this).val();
-			filter = FooTable.get("#results").use(FooTable.Filtering);
-			
-			if ( filterText == "" || filterText.length < 3 ) {
-				filter.removeFilter("generic");
-			} else {
-				filter.addFilter("generic", filterText);
-			}			
-
-			filter.filter();
-		});
 	</script>
+	<? echo makeSeasonDropdownJs($periodData); ?>
 </body>
 </html>
