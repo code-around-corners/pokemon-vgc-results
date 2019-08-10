@@ -1663,6 +1663,10 @@ function decodePokemonName($pokemon) {
 	$pokemonId = null;
 	$matchLength = 0;
 	
+	if ( is_numeric($data) ) {
+		$data = preg_replace("/[^a-z0-9\%]/", "", strtolower(POKEMON_ID_TO_NAME[$data]));
+	}
+	
 	foreach(POKEMON_NAME_TO_ID as $pkmn => $pkmnId) {
 		if ( strpos($data, $pkmn) !== false && $matchLength < strlen($pkmn) ) {
 			$pokemonId = $pkmnId;
