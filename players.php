@@ -21,7 +21,7 @@
 <?	makeSearchBarHtml($periodData); ?>
     
     <div class="container">
-	    <table id="events" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="true">
+	    <table id="events" class="w-100 toggle-circle-filled table-striped period-search" data-sorting="true" data-filtering="true" data-paging="true">
 		    <thead>
 			    <th></th>
 			    <th class="text-center" data-breakpoints="xs sm"><span class="hide-detail-row">Country</span></th>
@@ -123,19 +123,7 @@
 		        }
 			});
 		});
-				
-		$("#searchFilter").on("keyup", function() {
-			filterText = $(this).val();
-			filter = FooTable.get("#events").use(FooTable.Filtering);
-			
-			if ( filterText == "" || filterText.length < 3 ) {
-				filter.removeFilter("generic");
-			} else {
-				filter.addFilter("generic", filterText);
-			}			
-
-			filter.filter();
-		});
 	</script>
+	<? echo makeSeasonDropdownJs(null); ?>
 </body>
 </html>

@@ -1996,8 +1996,9 @@ function makeSearchBarHtml($periodData) {
 <?
 	}
 ?>
-			<input type="text" class="form-control" aria-label="Search" placeholder="Search..." id="searchFilter" />
+			<input type="text" class="form-control" aria-label="Search" placeholder="Search..." id="search-filter" />
 			<div class="input-group-append">
+				<button class="btn btn-primary" type="button" id="erase-search"><i class="fas fa-eraser"></i></button>
 				<button class="btn btn-primary" type="button"><i class="fas fa-search"></i></button>
 			</div>
   		</div>
@@ -2090,15 +2091,26 @@ function makeSeasonDropdownJs($periodData) {
 <?
 	}
 ?>
-		$("#searchFilter").on("change", function() {
+		$("#search-filter").on("change", function() {
 			filterText = $(this).val();
-			filter = FooTable.get("#events").use(FooTable.Filtering);
+			filter = FooTable.get(".period-search").use(FooTable.Filtering);
 			
 			if ( filterText == "" || filterText.length < 3 ) {
 				filter.removeFilter("generic");
 			} else {
 				filter.addFilter("generic", filterText);
 			}			
+
+			filter.filter();
+		});
+		
+		$("#erase-search").click(function() {
+			$("#search-filter").val("");
+			$("#current-season").text("All Seasons");
+			
+			filter = FooTable.get(".period-search").use(FooTable.Filtering);
+			filter.removeFilter("generic");
+			filter.removeFilter("season");
 
 			filter.filter();
 		});

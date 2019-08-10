@@ -39,7 +39,7 @@
 <?	makeSearchBarHtml(null); ?>
 
 	<div class="container">
-		 <table id="results" class="w-100 toggle-circle-filled table-striped" data-sorting="true" data-filtering="true" data-paging="false">
+		 <table id="results" class="w-100 toggle-circle-filled table-striped period-search" data-sorting="true" data-filtering="true" data-paging="false">
 			  <thead>
 				   <th></th>
 				   <th class="text-center" data-sorted="true" data-direction="ASC" data-type="number">Position</th>
@@ -149,19 +149,7 @@
 				  }
 			});
 		});
-				
-		$("#searchFilter").on("keyup", function() {
-			filterText = $(this).val();
-			filter = FooTable.get("#results").use(FooTable.Filtering);
-			
-			if ( filterText == "" || filterText.length < 3 ) {
-				filter.removeFilter("generic");
-			} else {
-				filter.addFilter("generic", filterText);
-			}			
-
-			filter.filter();
-		});
 	</script>
+	<? echo makeSeasonDropdownJs(null); ?>
 </body>
 </html>
