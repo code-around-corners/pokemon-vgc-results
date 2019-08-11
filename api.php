@@ -373,7 +373,7 @@ function getEventDetails($eventSql) {
 			"city"						=> $event["city"],
 			"countryCode"				=> $event["country"],
 			"countryName"				=> VALID_COUNTRY_CODES[$event["country"]],
-			"eventWinnerId"				=> $event["eventWinnerId"],
+			"eventWinnerId"				=> (int)$event["eventWinnerId"],
 			"eventWinner"				=> $event["eventWinner"],
 			"eventName"					=> $event["eventName"],
 			"eventWinnerCountryCode"	=> $event["eventWinnerCountryCode"],
@@ -421,9 +421,10 @@ function getEventResultData($sql) {
 	$eventDetails = getEventDetails($eventSql);
 	
 	$results->free();
-	$playerCount = $eventDetails[$eventId]["playerCount"];
 	
 	foreach( $resultsList as $eventId => $resultData ) {
+		$playerCount = $eventDetails[$eventId]["playerCount"];
+
 		foreach( $resultData as $position => $result ) {
 			foreach ( $eventDetails[$eventId]["eventPoints"] as $points ) {
 				if ( $position <= $points["position"] && $playerCount >= $points["kicker"] ) {
