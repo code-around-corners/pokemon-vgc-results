@@ -47,7 +47,7 @@
         </h4>
     </div>
     
-<?	makeSearchBarHtml(null); ?>
+<?	makeSearchBarHtml($periodData); ?>
 
     <div class="container">
 	    <table id="results" class="w-100 toggle-circle-filled table-striped period-search" data-sorting="true" data-filtering="true" data-paging="true">

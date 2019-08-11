@@ -52,13 +52,13 @@
 	                </td>
 <?			$pokemonSearch = ""; ?>
 <?			$showdownExport = ""; ?>
-<?			foreach(json_decode($player["lastTeam"], true) as $pokemon) { ?>
+<?			foreach($player["lastTeam"] as $pokemon) { ?>
 <?				$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
 <?				$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
 <?			} ?>
 					<td class="text-center team-column" data-filter-value="<? echo $pokemonSearch; ?>">
 <?			$pokemonCount = 0; ?>
-<?			foreach(json_decode($player["lastTeam"], true) as $pokemon) { ?>
+<?			foreach($player["lastTeam"] as $pokemon) { ?>
 <?				$pokemonCount++; ?>
 						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
 <?				if ( $pokemonCount == 3 ) { ?>

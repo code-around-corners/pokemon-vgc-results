@@ -412,7 +412,7 @@ function getEventResultData($sql) {
 			"position"			=> (int)$position,
 			"points"			=> 0,
 			"prizeMoney"		=> 0,
-			"team"				=> json_decode($result["team"], true),
+			"team"				=> sortPokemonTeam(json_decode($result["team"], true)),
 			"rentalLink"		=> $result["qrlink"]
 		);
 	}
@@ -600,7 +600,7 @@ function getAllPlayers() {
 	
 	while ( $player = $playerInfo->fetch_assoc() ) {
 		$playerData[$player["playerId"]]["lastEventDate"] = $player["date"];
-		$playerData[$player["playerId"]]["lastTeam"] = $player["team"];
+		$playerData[$player["playerId"]]["lastTeam"] = sortPokemonTeam(json_decode($player["team"], true));
 		$playerData[$player["playerId"]]["lastEventId"] = $player["eventId"];
 	}
 	

@@ -1655,6 +1655,86 @@ const POKEMON_NAME_TO_ID = array(
 	"melmetal" => 809
 );
 
+const INTIMIDATE_USERS = ["arcanine", "gyarados", "mawile", "salamence", "landorus", "incineroar"];
+
+const ULTRA_BEASTS = ["nihilego", "buzzwole", "pheromosa", "xurkitree", "celesteela", "kartana", "guzzlord", "poipole", "naganadel",
+	"stakataka", "blacephalon"];
+	
+const LEGENDARY_POKEMON = ["thundurus", "tornadus", "landorus", "articuno", "moltres", "zapdos", "tapubulu", "tapufini", "tapukoko",
+	"tapulele", "cresselia", "heatran"];
+
+const RESTRICTED_POKEMON = ["mewtwo", "lugia", "hooh", "kyogre", "groudon", "rayquaza", "dialga", "palkia", "giratina", "reshiram",
+	"zekrom", "kyurem", "xerneas", "yveltal", "zygarde", "cosmog", "cosmoem", "solgaleo", "lunala", "necrozma"];
+	
+const MYTHICAL_POKEMON = ["mew", "celebi", "jirachi", "deoxys", "phione", "manaphy", "darkrai", "shaymin", "arceus", "victini",
+	"keldeo", "meloetta", "genesect", "diancie", "hoopa", "volcanion", "magearna", "marshadow", "zeraora"];
+
+function sortPokemonTeam($pokemon) {
+	$sortedPokemon = array();
+	
+	$checkOrder = array(
+		"0"		=>	MYTHICAL_POKEMON,
+		"1"		=>	RESTRICTED_POKEMON,
+		"2"		=>	"mega",
+		"3"		=>	INTIMIDATE_USERS,
+		"4"		=>	LEGENDARY_POKEMON,
+		"5"		=>	ULTRA_BEASTS
+	);
+	
+	foreach($pokemon as $pkmn) {
+		if ( $pkmn["valid"] ) {
+			$shortName = preg_replace("/[^a-z0-9\%]/", "", strtolower($pkmn["pokemon"]));
+			$pokemonId = POKEMON_NAME_TO_ID[$shortName];
+			$priority = "";
+			
+			foreach($checkOrder as $check) {
+				if ( $check == "mega" ) {
+					$isMegaEvolution = false;
+					
+					if ( stripos($pkmn["forme"], "mega") !== false ) {
+						$isMegaEvolution = true;
+					}
+		
+					if ( stripos($pkmn["forme"], "primal") !== false ) {
+						$isMegaEvolution = true;
+					}
+					
+					$priority .= ($isMegaEvolution ? "0" : "1");
+				} else {
+					$foundMatch = false;
+					
+					foreach($check as $checkPkmn) {
+						if ( $shortName == $checkPkmn ) {
+							$priority .= "0";
+							$foundMatch = true;
+						}
+					}
+					
+					if ( ! $foundMatch ) $priority .= "1";
+				}
+			}
+
+			while ( strlen($pokemonId) < 4 ) $pokemonId = "0" . $pokemonId;
+			$priority .= $pokemonId;
+		} else {
+			$priority = "111119999";
+		}
+		
+		$sortedPokemon[(int)$priority] = $pkmn;
+		$sortedPokemon[(int)$priority]["priority"] = (int)$priority;
+	}
+	
+	ksort($sortedPokemon);
+	
+	$team = array();
+	
+	foreach($sortedPokemon as $pkmn) {
+		$team[count($team)] = $pkmn;
+	}
+	
+	return $team;
+}
+
 function decodePokemonName($pokemon) {
 	$data = preg_replace("/[^a-z0-9\%]/", "", strtolower($pokemon));
 	$data = str_replace("mew-two", "mewtwo", $data);
