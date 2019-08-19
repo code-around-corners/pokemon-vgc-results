@@ -16,6 +16,7 @@ const VALID_API_CALLS = array(
 	"addResult"			=> "addNewResult",
 	"deleteEvent"		=> "deleteEvent",
 	"setSessionKey"		=> "setSessionKey",
+	"mergePlayers"		=> "mergePlayers",
 );
 
 const VALID_COUNTRY_CODES = array(
@@ -284,7 +285,7 @@ const EVENT_LIST_SQL = "select
 		events e
 			left join results r
 				on e.id = r.eventId
-			left join players p
+			left join (Select * From players Where active = 1) p
 				on r.playerId = p.id
 			inner join eventTypes et
 				on e.eventTypeId = et.id
@@ -308,7 +309,7 @@ from
 			on e.id = r.eventId
 		inner join eventTypes et
 			on e.eventTypeId = et.id
-		left join players p
+		left join (Select * From players Where active = 1) p
 			on r.playerId = p.id ";
 
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
@@ -479,7 +480,7 @@ function getSinglePlayer() {
 		];
 	}
 	
-	$sql = "Select * From players Where id = " . $mysqli->real_escape_string($playerId);
+	$sql = "Select * From players Where active = 1 And id = " . $mysqli->real_escape_string($playerId);
 	$playerInfo = $mysqli->query($sql);
 	
 	$playerData = array();
@@ -537,6 +538,8 @@ function getAllPlayers() {
 		p.twitch
 	From
 		players p
+	Where
+		active = 1
 	";
 	
 	$playerInfo = $mysqli->query($sql);
@@ -920,6 +923,96 @@ function setSessionKey() {
 			"error"		=> "This API call requires a valid API key."
 		];
 	}
+}
+
+function mergePlayers() {
+	global $mysqli;
+	
+	if ( ! isset($_GET["key"]) || ! isset(API_KEY[$_GET["key"]]) ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "This API call requires a valid API key.",
+			"status"	=> 400
+		];
+	}
+	
+	$oldPlayerId = "";
+	$newPlayerId = "";
+	
+	if ( isset($_GET["oldPlayerId"]) )	$oldPlayerId = $_GET["oldPlayerId"];
+	if ( isset($_GET["newPlayerId"]) )	$newPlayerId = $_GET["newPlayerId"];
+	
+	if ( $oldPlayerId == "" || $newPlayerId == "" ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "This API call requires an old player ID and a new player ID to merge.",
+			"status"	=> 400
+		];
+	}
+	
+	$sql = "Select p.id, p.twitter From players p Where id = ? And active = 1";
+
+	$stmt = $mysqli->prepare($sql);
+	$stmt->bind_param("i", $id);
+	$stmt->bind_result($oldPlayerId, $oldTwitter);
+
+	$id = $oldPlayerId;
+	$stmt->execute();
+
+	if ( ! $stmt->fetch() ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "The old player ID could not be found.",
+			"status"	=> 400
+		];
+	}
+	
+	$stmt->close();
+
+	$sql = "Select p.id, p.playerName, p.country, p.facebook, p.twitter, p.youtube, p.twitch ";
+	$sql .= " From players p Where id = ? And active = 1";
+
+	$stmt = $mysqli->prepare($sql);
+	$stmt->bind_param("i", $id);
+	$stmt->bind_result($newPlayerId, $playerName, $countryCode, $facebook, $twitter, $youtube, $twitch);
+	
+	$id = $newPlayerId;
+	$stmt->execute();
+
+	if ( ! $stmt->fetch() ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "The new player ID could not be found.",
+			"status"	=> 400
+		];
+	}
+
+	$stmt->close();
+	
+	if ( ($twitter == "" || $twitter == null ) && $oldTwitter != "" ) $twitter = $oldTwitter;
+
+	$stmt = $mysqli->prepare("Insert Into players ( playerName, country, facebook, twitter, youtube, twitch, api ) Values ( ?, ?, ?, ?, ?, ?, ? );");
+	$stmt->bind_param("sssssss", $playerName, $countryCode, $facebook, $twitter, $youtube, $twitch, $_GET["key"]);
+	
+	$stmt->execute();
+	$mergedPlayerId = $stmt->insert_id;
+	$stmt->close();
+	
+	$stmt = $mysqli->prepare("Update players Set active = 0 Where id = ? Or id = ?;");
+	$stmt->bind_param("ii", $oldPlayerId, $newPlayerId);
+	$stmt->execute();
+	$stmt->close();
+
+	$stmt = $mysqli->prepare("Update results Set playerId = " . $mergedPlayerId . " Where playerId = ? Or playerId = ?;");
+	$stmt->bind_param("ii", $oldPlayerId, $newPlayerId);
+	$stmt->execute();
+	$stmt->close();
+
+	return [
+		"result"	=> "success",
+		"status"	=> 200,
+		"data"		=> $mergedPlayerId
+	];	
 }
 
 $mysqli->close();
