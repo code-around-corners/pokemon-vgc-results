@@ -6,12 +6,20 @@
 </head>
 
 <body>
-<?	include_once("resources/php/navigation.php"); ?>
-<?	include_once("resources/php/functions.php"); ?>
+<?php
+	include_once("resources/php/navigation.php");
+	include_once("resources/php/functions.php");
 
-<?	$eventList = json_decode(file_get_contents("https://results.trainertower.com/api.php?command=listEvents"), true); ?>
-<?	$periodData = getSeasonDropdownData(); ?>
+	$eventJson = @file_get_contents(getBaseUrl() . "api.php?command=listEvents");
 
+	if ( $eventJson != "" ) {
+		$eventList = json_decode($eventJson, true);
+	} else {
+		$eventList = null;
+	}
+	
+	$periodData = getSeasonDropdownData();
+?>
     <div class="container">
         Check out all the events that we have here on file at Trainer Tower! You can search for past events, look
         for events won by a particular player or search for events from particular countries.
@@ -33,17 +41,18 @@
 			    </tr>
 		    </thead>
 		    <tbody>
-        
-<?	foreach($eventList["data"] as $eventId => $event) { ?>
+
+<?	if ( $eventList !== null ) { ?>
+<?		foreach($eventList["data"] as $eventId => $event) { ?>
 				<tr>
 					<td></td>
                 	<td class="text-center" data-sort-value="<? echo $event["date"]; ?>" data-filter-value="<? echo str_replace("-", "", $event["date"]); ?>">
 	                	<? echo date("F jS Y", strtotime($event["date"])); ?>
 	                </td>
                 	<td class="text-center hide-detail-row" data-filter-value="<? echo $event["countryName"]; ?>">
-<?		if ( $event["countryCode"] != "" ) { ?>
+<?			if ( $event["countryCode"] != "" ) { ?>
                 		<img src="resources/images/flags/<? echo strtolower($event["countryCode"]); ?>.png" title="<? echo $event["countryName"]; ?>" class="icon tttooltip" />
-<?		} ?>
+<?			} ?>
                 	</td>
                 	<td class="text-center" data-sort-value="<? echo $event["eventName"]; ?>">
 	                	<span class="d-sm-inline d-md-none"><? echo getFlagEmoji(strtoupper($event["countryCode"])) . " "; ?></span>
@@ -56,6 +65,7 @@
 	                	<a href="player.php?id=<? echo $event["eventWinnerId"]; ?>"><? echo $event["eventWinner"]; ?></a>
 	                </td>
 				</tr>
+<?		} ?>
 <?	} ?>
             </tbody>
         </table>

@@ -18,7 +18,7 @@
 		        </div>
 		        <div class="col-md-4 d-none d-md-block text-center">
 <?	if ( session_status() == PHP_SESSION_ACTIVE ) { ?>
-					<span id="currentApiKey" class="text-muted" data-api-key="<? echo $_SESSION['apiKey']; ?>">
+					<span id="currentApiKey" class="text-muted" data-api-key="<? echo (isset($_SESSION['apiKey']) ? $_SESSION['apiKey'] : ""); ?>">
 						<? echo ((isset($_SESSION['apiUser']) && $_SESSION['apiUser'] != "") ? $_SESSION['apiUser'] : "Set API Key"); ?>
 					</span>
 <?	} ?>

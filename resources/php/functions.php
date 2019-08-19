@@ -1820,7 +1820,7 @@ function getSpriteClass($pokemonData) {
 			$class .= " form-" . str_replace(" ", "-", strtolower($pokemonData["forme"]));
 		}
 		
-		if ( $pokemonData["shiny"] ) {
+		if ( isset($pokemonData["shiny"]) && $pokemonData["shiny"] ) {
 			$class .= " color-shiny";
 		}
 	} else {
@@ -1932,7 +1932,7 @@ function decodePokemonShowdown($showdown) {
 function encodePokemonShowdown($pokemonData) {
 	$output = "";
 	
-	if ( $pokemonData["pokemon"] != $pokemonData["nickname"] && $pokemonData["nickname"] != "" ) {
+	if ( isset($pokemonData["nickname"]) && $pokemonData["pokemon"] != $pokemonData["nickname"] && $pokemonData["nickname"] != "" ) {
 		$output .= $pokemonData["nickname"] . " (" . $pokemonData["pokemon"] . "-" . $pokemonData["forme"] . ")";
 	} else {
 		$output .= $pokemonData["pokemon"];
@@ -1951,8 +1951,11 @@ function encodePokemonShowdown($pokemonData) {
 	
 	$output .= "\r\n";
 	
-	if ( $pokemonData["shiny"] ) $output .= "Shiny: Yes\r\n";
-	$output .= "Ability: " . $pokemonData["ability"] . "\r\n";
+	if ( isset($pokemonData["shiny"]) ) {
+		if ( $pokemonData["shiny"] ) $output .= "Shiny: Yes\r\n";
+	}
+	
+	$output .= "Ability: " . (isset($pokemonData["ability"]) ? $pokemonData["ability"] : "") . "\r\n";
 	
 	if ( isset($pokemonData["level"]) ) {
 		$output .= "Level: " . $pokemonData["level"] . "\r\n";
@@ -2031,7 +2034,13 @@ function getFlagEmoji($countryCode) {
 }
 
 function getSeasonDropdownData() {
-	$seasonPeriods = json_decode(file_get_contents("https://pokecal-dev.codearoundcorners.com/api.php?command=listPeriods&product=Video%20Game&onlyFormat"), true);
+	$seasonJson = "";
+	//$seasonJson = @file_get_contents("https://pokecal-dev.codearoundcorners.com/api.php?command=listPeriods&product=Video%20Game&onlyFormat");
+	if ( $seasonJson == "" ) {
+		return null;
+	}
+	
+	$seasonPeriods = json_decode($seasonJson, true);
 	
 	$maximumSeason = 0;	
 	$maximumHistory = 3;
@@ -2246,5 +2255,11 @@ function makeSearchBarHelp() {
 		</div>
 	</div>
 <?php
+}
+
+function getBaseUrl() {
+	return "http://" . $_SERVER["SERVER_ADDR"] . substr($_SERVER["REQUEST_URI"], 0,
+		strlen($_SERVER["REQUEST_URI"]) - strlen(basename($_SERVER["REQUEST_URI"])));
+
 }
 ?>

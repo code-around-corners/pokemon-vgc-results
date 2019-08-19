@@ -6,18 +6,23 @@
 </head>
 
 <body>
-<?	include_once("resources/php/functions.php"); ?>
-<?	include_once("resources/php/navigation.php"); ?>
+<?php
+	include_once("resources/php/functions.php");
+	include_once("resources/php/navigation.php");
 
-<?	$playerId = -1; ?>
-<?	$playerData = array(); ?>
-<?	$periodData = getSeasonDropdownData(); ?>
+	$playerId = -1;
+	$playerData = null;
+	$periodData = getSeasonDropdownData();
 
-<?	if ( isset($_GET["id"]) ) { ?>
-<?		$playerId = (int)$_GET["id"]; ?>
-<?		$playerData = json_decode(file_get_contents("https://results.trainertower.com/api.php?command=playerInfo&playerId=" . $playerId), true); ?>
-<?	} ?>
-
+	if ( isset($_GET["id"]) ) {
+		$playerId = (int)$_GET["id"];
+		$playerJson = @file_get_contents(getBaseUrl() . "api.php?command=playerInfo&playerId=" . $playerId);
+		
+		if ( $playerJson != "" ) {
+			$playerData = json_decode($playerJson, true);
+		}
+	}
+?>
     <div class="grey-header container">
         <h4 class="event-name">
 <?	if ( $playerData["data"]["player"]["countryCode"] != "" ) { ?>
@@ -66,7 +71,6 @@
 <?	$recordCount = 0; ?>
 <?	foreach($playerData["data"]["results"]["results"] as $eventId => $event) { ?>
 <?		foreach($event as $resultId => $result) { ?>
-<?			if ( $result["points"] == 0 && $showOnlyCp ) continue; ?>
 <?			$recordCount++; ?>
 <?			$eventCountryCode = $playerData["data"]["results"]["events"][$eventId]["countryCode"]; ?>
 <?			$eventCountryName = $playerData["data"]["results"]["events"][$eventId]["countryName"]; ?>

@@ -11,19 +11,21 @@
 	include_once("resources/php/config.php");
 	include_once("resources/php/navigation.php");
 	
-	if ( isset($_GET["debug"]) ) {
-		makeSeasonDropdownHtml();
-		exit();
-	}
-	
 	$filters = array(
 	    "premierGroup"  => array("Regional Championship", "Special Championship", "International Championship"),
 	    "startDate"     => date("Y-m-d"),
 	    "product"		=> array("Video Game")
 	);
 	
-	$filtersEncoded = base64_encode(json_encode($filters));
-	$tournaments = json_decode(file_get_contents("https://www.pokecal.com/api.php?command=listEvents&filters=" . $filtersEncoded), true); 
+//	$filtersEncoded = base64_encode(json_encode($filters));
+//	$baseTournamentData = @file_get_contents("https://www.pokecal.com/api.php?command=listEvents&filters=" . $filtersEncoded);
+//	if ( $baseTournamentData != "" ) {
+//		$tournaments = json_decode($baseTournamentData, true); 
+//	} else {
+		$tournaments = array(
+			"data"	=> array()
+		);
+//	}
 ?>
 
 <div class="container">

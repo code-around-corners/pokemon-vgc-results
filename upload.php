@@ -10,11 +10,9 @@
 	include_once("resources/php/functions.php");
 	include_once("resources/php/navigation.php");
 
-	session_start();
-
 	$bulkInput = "";
 	$showValidation = false;
-	$countryList = json_decode(file_get_contents("https://results.trainertower.com/api.php?command=listCountries"), true);
+	$countryList = json_decode(file_get_contents(getBaseUrl() + "api.php?command=listCountries"), true);
 
 	if ( isset($_POST['bulk']) ) {
 		$showValidation = true;
@@ -39,7 +37,7 @@
 		$apiData = array();
 
 		foreach($bulkBatch as $batch) {
-			$batchApiData = json_decode(file_get_contents("https://results.trainertower.com/api.php?command=validate&bulk=" . base64_encode($batch)), true);
+			$batchApiData = json_decode(file_get_contents(getBaseUrl() + "api.php?command=validate&bulk=" . base64_encode($batch)), true);
 
 			foreach($batchApiData["data"] as $position => $record) {
 				$apiData[$position] = $record;

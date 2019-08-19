@@ -6,11 +6,20 @@
 </head>
 
 <body>
-<?	include_once("resources/php/navigation.php"); ?>
-<?	include_once("resources/php/functions.php"); ?>
+<?php
+	include_once("resources/php/navigation.php");
+	include_once("resources/php/functions.php");
 
-<?	$playerList = json_decode(file_get_contents("https://results.trainertower.com/api.php?command=listPlayers"), true); ?>
+	$playerJson = @file_get_contents(getBaseUrl() . "api.php?command=listPlayers");
+	
+	if ( $playerJson == "" ) {
+		$playerList = null;
+	} else {
+		$playerList = json_decode($playerJson, true);
+	}
 
+	$periodData = getSeasonDropdownData();
+?>
     <div class="container">
 	    The player list is a roster of every player recorded in the Trainer Tower database. You can search
 	    for an individual player or search by country. Where available we also have Twitter handles, as well
@@ -31,68 +40,70 @@
 			    <th class="text-center">Social Media</th>
 		    </thead>
 		    <tbody>
-        
-<?	foreach($playerList["data"] as $playerId => $player) { ?>
+
+<?	if ( $playerList !== null ) { ?>
+<?		foreach($playerList["data"] as $playerId => $player) { ?>
 				<tr>
 					<td></td>
                 	<td class="text-center hide-detail-row" data-filter-value="<? echo $player["countryName"]; ?>">
-<?		if ( $player["countryCode"] != "" ) { ?>
+<?			if ( $player["countryCode"] != "" ) { ?>
                 		<img src="resources/images/flags/<? echo strtolower($player["countryCode"]); ?>.png" title="<? echo $player["countryName"]; ?>" class="icon tttooltip" />
-<?		} ?>
+<?			} ?>
                 	</td>
                 	<td class="text-center" data-sort-value="<? echo $player["playerName"]; ?>">
 	                	<span class="d-sm-inline d-md-none"><? echo getFlagEmoji(strtoupper($player["countryCode"])) . " "; ?></span>
 	                	<a href="player.php?id=<? echo $playerId; ?>"><? echo $player["playerName"]; ?></a>
 	                </td>
-<?		if ( $player["lastEventDate"] != null ) { ?>
+<?			if ( $player["lastEventDate"] != null ) { ?>
                 	<td class="text-center" data-sort-value="<? echo $player["lastEventDate"]; ?>">
 	                	<a href="standings.php?id=<? echo $player["lastEventId"]; ?>">
 		                	<? echo date("F jS Y", strtotime($player["lastEventDate"])); ?>
 	                	</a>
 	                </td>
-<?			$pokemonSearch = ""; ?>
-<?			$showdownExport = ""; ?>
-<?			foreach($player["lastTeam"] as $pokemon) { ?>
-<?				$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
-<?				$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
-<?			} ?>
-					<td class="text-center team-column" data-filter-value="<? echo $pokemonSearch; ?>">
-<?			$pokemonCount = 0; ?>
-<?			foreach($player["lastTeam"] as $pokemon) { ?>
-<?				$pokemonCount++; ?>
-						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
-<?				if ( $pokemonCount == 3 ) { ?>
-						<br class="phone-line-break" />
+<?				$pokemonSearch = ""; ?>
+<?				$showdownExport = ""; ?>
+<?				foreach($player["lastTeam"] as $pokemon) { ?>
+<?					$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
+<?					$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
 <?				} ?>
-<?			} ?>
+					<td class="text-center team-column" data-filter-value="<? echo $pokemonSearch; ?>">
+<?				$pokemonCount = 0; ?>
+<?				foreach($player["lastTeam"] as $pokemon) { ?>
+<?					$pokemonCount++; ?>
+						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
+<?					if ( $pokemonCount == 3 ) { ?>
+						<br class="phone-line-break" />
+<?					} ?>
+<?				} ?>
 					</td>
-<?		} else { ?>
+<?			} else { ?>
 					<td class="text-center" data-sort-value=""></td>
 					<td class="text-center" data-sort-value=""></td>
-<?		} ?>
+<?			} ?>
                 	<td class="text-center">
-<?		if ( isset($player["socialMedia"]["facebook"]) ) { ?>	            
+<?			if ( isset($player["socialMedia"]["facebook"]) ) { ?>	            
 			            <a href="http://www.facebook.com/<? echo $player["socialMedia"]["facebook"]; ?>" target="_blank">
 				            <img src="resources/images/social/facebook.png" alt="facebook" class="small-icon" />
 				        </a>
-<?		} ?>
-<?		if ( isset($player["socialMedia"]["twitter"]) ) { ?>	            
+<?			} ?>
+<?			if ( isset($player["socialMedia"]["twitter"]) ) { ?>	            
 			            <a href="http://www.twitter.com/<? echo $player["socialMedia"]["twitter"]; ?>" target="_blank">
 				            <img src="resources/images/social/twitter.png" alt="twitter" class="small-icon" />
 				        </a>
-<?		} ?>
-<?		if ( isset($player["socialMedia"]["youtube"]) ) { ?>	            
+<?			} ?>
+<?			if ( isset($player["socialMedia"]["youtube"]) ) { ?>	            
 			            <a href="http://www.youtube.com/user/<? echo $player["socialMedia"]["youtube"]; ?>" target="_blank">
 				            <img src="resources/images/social/youtube.png" alt="youtube" class="small-icon" />
 				        </a>
-<?		} ?>
+<?			} ?>
 <?		if ( isset($player["socialMedia"]["twitch"]) ) { ?>	            
 			            <a href="http://www.twitch.com/u/<? echo $player["socialMedia"]["twitch"]; ?>" target="_blank">
 				            <img src="resources/images/social/twitch.png" alt="twitch" class="small-icon" />
 				        </a>
-<?		} ?>
+<?			} ?>
                 	</td>
 				</tr>
+<?		} ?>
 <?	} ?>
             </tbody>
         </table>

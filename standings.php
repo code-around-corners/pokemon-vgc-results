@@ -6,23 +6,24 @@
 </head>
 
 <body>
-<?	include_once("resources/php/functions.php"); ?>
-<?	include_once("resources/php/navigation.php"); ?>
+<?php
+	include_once("resources/php/functions.php");
+	include_once("resources/php/navigation.php");
 
-<?	$eventName = ""; ?>
-<?	$resultData = array(); ?>
-<?	$showOnlyCp = false; ?>
-<?	$eventId = -1; ?>
+	$eventName = "";
+	$resultData = array();
+	$showOnlyCp = false;
+	$eventId = -1;
 
-<?	if ( isset($_GET["id"]) ) { ?>
-<?		$eventId = $_GET["id"]; ?>
-<?		$resultData = json_decode(file_get_contents("https://results.trainertower.com/api.php?command=eventResults&eventId=" . $eventId), true); ?>
+	if ( isset($_GET["id"]) ) {
+		$eventId = $_GET["id"];
+		$resultData = json_decode(file_get_contents(getBaseUrl() . "api.php?command=eventResults&eventId=" . $eventId), true);
 
-<?		$eventName = $resultData["data"]["events"][$eventId]["eventName"];	?>
-<?		$eventCountryCode = strtolower($resultData["data"]["events"][$eventId]["countryCode"]);	?>
-<?		$eventCountry = $resultData["data"]["events"][$eventId]["countryName"];	?>
-<?	} ?>
-
+		$eventName = $resultData["data"]["events"][$eventId]["eventName"];
+		$eventCountryCode = strtolower($resultData["data"]["events"][$eventId]["countryCode"]);
+		$eventCountry = $resultData["data"]["events"][$eventId]["countryName"];
+	}
+?>
 	<div class="grey-header container">
 		<h4 class="event-name">
 			 <img src="resources/images/flags/<? echo $eventCountryCode; ?>.png" alt="<? echo $eventCountry; ?>" class="icon" />&nbsp;

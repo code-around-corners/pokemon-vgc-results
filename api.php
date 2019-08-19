@@ -319,7 +319,8 @@ $apiCommand = $_GET["command"];
 header('Content-Type: application/json');
 
 if ( isset(VALID_API_CALLS[$apiCommand]) ) {
-	echo json_encode(VALID_API_CALLS[$apiCommand](), JSON_PRETTY_PRINT);
+	$json = VALID_API_CALLS[$apiCommand]();
+	echo json_encode($json, JSON_PRETTY_PRINT);
 } else {
 	echo json_encode([
 		"result"	=> "error",
@@ -352,7 +353,7 @@ function getEventList() {
 	} elseif ( $countryCode != "" ) {
 		$sql .= " And country = '" . $mysqli->real_escape_string($countryCode) . "'";
 	}
-		
+	
 	return [
 		"result"	=> "success",
 		"status"	=> 200,
