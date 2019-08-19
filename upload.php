@@ -62,7 +62,8 @@
 		    <textarea id="bulk" name="bulk" style="width: 100%" rows="10"><? echo $bulkInput; ?></textarea>
 		    <div class="text-center">
 			    <button form="bulkInput" type="submit">Validate Input Data</button>
-			    <button type="button" onclick="javascript:stripTrainerTowerHtml();">Strip Trainer Tower HTML</button>
+			    <button type="button" onclick="javascript:stripMode1();">Strip Input Mode 1</button>
+			    <button type="button" onclick="javascript:stripMode2();">Strip Input Mode 2</button>
 		    </div>
 	    </form>
     </div>
@@ -239,7 +240,7 @@
 <?	include_once("resources/php/footer.php"); ?>
 
 	<script lang="text/javascript">
-		function stripTrainerTowerHtml() {
+		function stripMode1() {
 			bulkDom = jQuery("<div>" + $("#bulk").val() + "</div>");
 			
 			strippedText = "";
@@ -271,6 +272,21 @@
 			});
 			
 			$("#bulk").val(strippedText);
+		}
+		
+		function stripMode2() {
+			baseData = $("#bulk").val().replace(/ Victory Road/g, ",").split("\n");
+			parsedData = "";
+			position = 0;
+			
+			$.each(baseData, function(id, data) {
+				position++;
+				rowData = data.split("\t");
+				
+				parsedData += position + "," + rowData[3] + "," + rowData[5] + "\n";
+			});
+			
+			$("#bulk").val(parsedData);
 		}
 		
 		function getNewPlayerList() {

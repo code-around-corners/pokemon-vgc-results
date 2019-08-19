@@ -5,6 +5,7 @@
 	}
 ?>
 	
+<?	makeSearchBarHelp(); ?>
 	<br />
     <footer>
         <nav class="navbar navbar-default fixed-bottom bg-dark text-light text-center" role="navigation">

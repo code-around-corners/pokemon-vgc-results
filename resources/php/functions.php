@@ -2017,6 +2017,8 @@ function encodePokemonShowdown($pokemonData) {
 }
 
 function getFlagEmoji($countryCode) {
+	if ( $countryCode == "XXX" ) return "🏳️";
+	
 	$flagOffset = 0x1F1E6;
 	$asciiOffset = 0x41;
 
@@ -2080,6 +2082,7 @@ function makeSearchBarHtml($periodData) {
 			<div class="input-group-append">
 				<button class="btn btn-primary" type="button" id="erase-search"><i class="fas fa-eraser"></i></button>
 				<button class="btn btn-primary" type="button"><i class="fas fa-search"></i></button>
+				<button class="btn btn-primary" type="button" data-toggle="modal" data-target="#searchHelp"><i class="fas fa-question-circle"></i></button>
 			</div>
   		</div>
     </div>
@@ -2195,6 +2198,53 @@ function makeSeasonDropdownJs($periodData) {
 			filter.filter();
 		});
 	</script>
+<?php
+}
+
+function makeSearchBarHelp() {
+?>
+	<div id="searchHelp" class="modal" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Search Bar Help</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>
+						The search bar allows you to quickly search through the Trainer Tower results page for whatever
+						teams, events or players you might be looking for.
+					</p>
+					<p>
+						If you want to limit the range of events being returned to a specific period (for example, you
+						only want to see the 2019 Ultra Series events), click on the "All Seasons" dropdown and select the
+						time period you're interested in. Only events from that time period will be shown. (You can't
+						use this on the player list or the standings screens).
+					</p>
+					<p>
+						To search for a specific player, event name or country, type what you are searching for into the
+						search box and either press enter or click the <i class="fas fa-search"></i> icon. Clicking the
+						<i class="fas fa-eraser"></i> icon will clear your current search.
+					</p>
+					<p>
+						You can also search for teams with specific Pokémon this way! Enter the name of the Pokémon you want
+						to find and only teams with that Pokémon will be returned. You can search for multiple Pokémon this
+						way as well by typing <code>xerneas AND groudon</code> into the search bar (replace Xerneas and
+						Groudon with the Pokémon you are looking for). This will return all the teams that have both Pokémon
+						in them. This doesn't only apply to Pokémon, searching for <code>umbreon AND japan</code> would return
+						all the Japanese teams with Umbreon in them.
+					</p>
+					<p>
+						When searching for multiple items, the <code>AND</code> must be in capitals for it to be recognised.
+						You can also search for more than two items. <code>kangaskhan AND magikarp AND australia</code> would
+						look for anyone from Australia crazy enough to run both a Kangaskhan and a Magikarp in their team.
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
 <?php
 }
 ?>

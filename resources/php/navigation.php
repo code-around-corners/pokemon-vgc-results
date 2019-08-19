@@ -12,8 +12,14 @@
 				<li class="nav-item<? echo ((basename($_SERVER['REQUEST_URI']) == "players.php") ? " active" : ""); ?>">
 					<a class="nav-link" href="players.php">Player List</a>
 				</li>
-				<li class="nav-item<? echo ((basename($_SERVER['REQUEST_URI']) == "upload.php") ? " active" : ""); ?>">
-					<a class="nav-link" href="upload.php">Upload Results</a>
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" data-toggle="dropdown"
+						href="#" role="button" aria-haspopup="true" aria-expanded="false">
+						Data Management
+					</a>
+					<div class="dropdown-menu">
+						<a class="dropdown-item" href="upload.php">Upload Results</a>
+					</div>
 				</li>
 				<li class="nav-item dropdown">
 					<a class="nav-link dropdown-toggle" data-toggle="dropdown"

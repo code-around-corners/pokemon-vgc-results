@@ -42,11 +42,11 @@
 		 <table id="results" class="w-100 toggle-circle-filled table-striped period-search" data-sorting="true" data-filtering="true" data-paging="false">
 			  <thead>
 				   <th></th>
-				   <th class="text-center" data-sorted="true" data-direction="ASC" data-type="number">Position</th>
+				   <th class="text-center" data-sorted="true" data-direction="ASC" data-type="number">#</th>
 				   <th class="text-center" data-breakpoints="xs sm"><span class="hide-detail-row">Country</span></th>
 				   <th class="text-center">Player</th>
-				   <th class="text-center" data-type="number">CP</th>
-				   <th class="text-center" data-breakpoints="xs">Team</th>
+				   <th class="text-center" data-type="number" data-breakpoints="xs">CP</th>
+				   <th class="text-center" data-breakpoints="xs"><span class="hide-detail-row">Team</span></th>
 				   <th class="text-center" data-breakpoints="xs sm">Export Team</th>
 			  </thead>
 			  <tbody>
@@ -65,7 +65,13 @@
 					 	<a href="player.php?id=<? echo $result["playerId"]; ?>">
 						  	<span class="d-md-inline d-lg-none"><? echo getFlagEmoji(strtoupper($result["playerCountryCode"])) . " "; ?></span>
 						  	<? echo $result["playerName"]; ?>
-						  </a>
+						</a>
+						<span class="d-sm-inline d-md-none">
+							<br />
+<?		foreach($result["team"] as $pokemon) { ?>
+							<span class="tttooltip d-md-inline d-lg-none <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
+<?		} ?>
+						</span>
 					 </td>
 					<td class="text-center"><? echo $result["points"]; ?></td>
 <?		$pokemonSearch = ""; ?>
@@ -74,14 +80,9 @@
 <?			$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
 <?			$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
 <?		} ?>
-					<td class="text-center team-column" data-filter-value="<? echo $pokemonSearch; ?>">
-<?		$pokemonCount = 0; ?>
+					<td class="text-center hide-detail-row team-column" data-filter-value="<? echo $pokemonSearch; ?>">
 <?		foreach($result["team"] as $pokemon) { ?>
-<?			$pokemonCount++; ?>
 						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
-<?			if ( $pokemonCount == 3 ) { ?>
-						<br class="phone-line-break" />
-<?			} ?>
 <?		} ?>
 					</td>
 					<td class="text-center">
@@ -118,7 +119,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 <?	include_once("resources/php/footer.php"); ?>
 
 	<script type="text/javascript">
@@ -129,24 +130,24 @@
 		
 		$(document).ready(function() {
 			$("#results").footable({
-				 'on': {
-					  'ready.ft.table': function(e, ft) {
+			'on': {
+				'ready.ft.table': function(e, ft) {
 						PkSpr.process_dom();
-					  	$(".tttooltip").tooltipster();
-						},
-					  'after.ft.paging': function(e, ft) {
+						$(".tttooltip").tooltipster();
+					},
+					'after.ft.paging': function(e, ft) {
 						PkSpr.process_dom();
-					  	$(".tttooltip").tooltipster();
-						},
-					  'after.ft.filtering': function(e, ft) {
+						$(".tttooltip").tooltipster();
+					},
+					'after.ft.filtering': function(e, ft) {
 						PkSpr.process_dom();
-					  	$(".tttooltip").tooltipster();
-						},	   	
-					  'after.ft.sorting': function(e, ft) {
+						$(".tttooltip").tooltipster();
+					},	   	
+					'after.ft.sorting': function(e, ft) {
 						PkSpr.process_dom();
-					  	$(".tttooltip").tooltipster();
-						}				  	
-				  }
+						$(".tttooltip").tooltipster();
+					}				  	
+				}
 			});
 		});
 	</script>
