@@ -1,5 +1,4 @@
 <?php
-	
 
 const POKEMON_ID_TO_NAME = array(
 	"1" => "Bulbasaur",

@@ -24,18 +24,38 @@
 	} else {
 		$eventId = $_GET["eventId"];
 		$countryList = json_decode(file_get_contents(getBaseUrl() . "api.php?command=listCountries"), true);
-		$eventData = json_decode(file_get_contents(getBaseUrl() . "api.php?command=eventResults&eventId=" . $eventId), true);
+		$resultData = json_decode(file_get_contents(getBaseUrl() . "api.php?command=eventResults&eventId=" . $eventId), true);
+
+		if ( $resultData !== null ) {
+			$eventName = $resultData["data"]["events"][$eventId]["eventName"];
+			$eventCountryCode = strtolower($resultData["data"]["events"][$eventId]["countryCode"]);
+			$eventCountry = $resultData["data"]["events"][$eventId]["countryName"];
+			$eventHasCp = ($resultData["data"]["results"][$eventId][1]["points"]) > 0;
+			$eventTypeData = json_decode(file_get_contents(getBaseUrl() . "api.php?command=listEventTypes&date=" . date("Y-m-d", strtotime($resultData["data"]["events"][$eventId]["date"]))), true);
+		} else {
+			$eventName = "Unknown Event";
+			$eventCountryCode = "xxx";
+			$eventCountry = "";
+			$eventHasCp = false;
+			$eventTypeData = array("data" => array());
+		}
 ?>
-    <div class="grey-header container">
-        <h4 class="event-name">
-	        <b>Edit VGC Results</b>
-	    </h4>
+	<div class="grey-header container">
+		<h4 class="event-name">
+			 <img src="resources/images/flags/<? echo $eventCountryCode; ?>.png" alt="<? echo $eventCountry; ?>" class="icon" />&nbsp;
+			 <b><? echo $eventName; ?></b>
+		 </h4>
 		<h6 class="event-name">
+			 <? echo date("F jS Y", strtotime($resultData["data"]["events"][$eventId]["date"])); ?>
+<?		if ( $resultData["data"]["events"][$eventId]["playerCount"] > 0 ) { ?>
+			 | <? echo $resultData["data"]["events"][$eventId]["playerCount"]; ?> Players
+<?		} ?>
 			<span class="text-center">
-				<a href="standings.php?id=<? echo $eventId; ?>">Return To This Event</a>
+				| <a href="#!" data-toggle="modal" data-target="#eventCreation">Edit Event Details</a>
+				| <a href="standings.php?id=<? echo $eventId; ?>">Return To This Event</a>
 			</span>
 		</h6>
-    </div>
+	</div>
 
     <div class="container">
 	    <table id="validation" class="w-100 toggle-circle-filled table-striped" data-sorting="false" data-filtering="false" data-paging="false">
@@ -45,7 +65,7 @@
 			    <th class="text-center" width=60%>Team</th>
 		    </thead>
 		    <tbody>
-<?		foreach($eventData["data"]["results"][$eventId] as $position => $record) { ?>
+<?		foreach($resultData["data"]["results"][$eventId] as $position => $record) { ?>
 				<tr data-position="<? echo $record["position"]; ?>" data-event-id="<? echo $eventId; ?>">
 					<td class="text-center"><? echo $record["position"]; ?></td>
 					<td class="text-center">
@@ -74,7 +94,75 @@
 	    
 	    <hr />
     </div>
+	<div id="eventCreation" class="modal" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Edit Event Details</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="w-100 form-group">
+						<div class="row pb-1">
+							<div class="col-4">Event Name</div>
+							<div class="col-8">
+								<input type="text" class="form-control" id="eventName" value="<? echo $eventName; ?>" />
+							</div>
+						</div>
+						
+						<div class="row pb-1">
+							<div class="col-4">Event Country</div>
+							<div class="col-8">
+								<select class="w-100 form-control" id="eventCountry">
+									<option value=""></option>
+	<?	foreach($countryList["data"] as $countryCode => $countryName) { ?>
+									<option value="<? echo $countryCode; ?>"<? echo (strtolower($countryCode) == strtolower($eventCountryCode) ? " selected" : ""); ?>><? echo $countryName; ?></option>
+	<?	} ?>
+								</select>
+							</div>
+						</div>
 
+						<div class="row pb-1">
+							<div class="col-4">Event Date</div>
+							<div class="col-8">
+								<input class="form-control" type="text" id="eventDate" onchange="javascript:updateEventTypes();" value="<? echo date("Y-m-d", strtotime($resultData["data"]["events"][$eventId]["date"])); ?>" />
+							</div>
+						</div>
+
+						<div class="row pb-1">
+							<div class="col-4">Event Type</div>
+							<div class="col-8">
+								<select class="w-100 form-control" id="eventType">
+<?		foreach($eventTypeData["data"] as $eventTypeId => $eventType) { ?>
+									<option value="<? echo $eventTypeId; ?>"<? echo ($eventTypeId == $resultData["data"]["events"][$eventId]["eventTypeId"] ? " selected" : ""); ?>><? echo $eventType; ?></option>
+<?		} ?>
+								</select>
+							</div>
+						</div>
+
+						<div class="row pb-1">
+							<div class="col-4">Player Count</div>
+							<div class="col-8">
+								<input class="form-control" type="number" id="playerCount" value="<? echo $resultData["data"]["events"][$eventId]["playerCount"]; ?>" />
+							</div>
+							
+							<p class="pt-1">
+								You can specify 0 for the player count if you don't know the correct count, however
+								be aware that this will prevent CP totals from being calculated correctly as the system
+								won't have the correct kicker counts.
+							</p>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:updateEvent();">Update Event Details</button>
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
 <?	} ?>
 
 <?	include_once("resources/php/footer.php"); ?>
@@ -83,6 +171,9 @@
 		$(document).ready(function() {
 			PkSpr.process_dom();
             $('.tttooltip').tooltipster();
+            $("#eventDate").datepicker({
+	            format: 'yyyy-mm-dd'
+			});
 			$("#validation").footable({
 				'on': {
 					'ready.ft.table': function(e, ft) {
@@ -158,6 +249,47 @@
 				} else {
 					row.find(".save-changes").attr("disabled", true);
 				}
+			});
+		}
+
+		function updateEventTypes() {
+			$.get("api.php", {
+				command: "listEventTypes",
+				date: $("#eventDate").val()
+			}).done(function(data) {
+				$("#eventType").find("option").remove();
+				
+				$.each(data["data"], function(eventTypeId, eventType) {
+					$("#eventType").append("<option value='" + eventTypeId + "'>" + eventType + "</option>");
+				});
+			});
+		}
+
+		function updateEvent() {
+			eventId = <? echo $eventId; ?>;
+			eventName = $("#eventName").val();
+			countryCode = $("#eventCountry").val();
+			eventDate = $("#eventDate").val();
+			eventTypeId = $("#eventType").val();
+			playerCount = $("#playerCount").val();
+			
+			if ( eventId == "" || eventName == "" || countryCode == "" || eventDate == "" || eventTypeId == "" ) {
+				alert("Please make sure all the fields have been filled out!");
+				return;
+			}
+			
+			$.get("api.php", {
+				command: "updateEvent",
+				eventId: eventId,
+				eventName: eventName,
+				countryCode: countryCode,
+				eventDate: eventDate,
+				eventTypeId: eventTypeId,
+				playerCount: playerCount,
+				key: $("#currentApiKey").attr("data-api-key")
+			}).done(function(data) {
+				alert("Event details have been updated!");
+				location.reload();
 			});
 		}
 	</script>

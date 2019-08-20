@@ -202,7 +202,7 @@ function decodePokemonShowdown($showdown) {
 			$pokemonData["ability"] = ucwords(strtolower(preg_replace("/Ability: */", "", $data)));
 		} elseif ( stripos($data, "Level:") !== false ) {
 			$pokemonData["level"] = preg_replace("/Level: */", "", $data);
-		} elseif ( stripos($data, " Nature") !== false ) {
+		} elseif ( stripos($data, " Nature") !== false && substr($data, 0, 1) !== "-" ) {
 			$pokemonData["nature"] = ucwords(strtolower(preg_replace("/ *Nature.*/", "", $data)));
 		} elseif ( stripos($data, "EVs:") !== false ) {
 			$evData = preg_replace("/EVs: */", "", $data);

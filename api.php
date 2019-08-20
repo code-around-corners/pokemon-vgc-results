@@ -15,6 +15,7 @@ const VALID_API_CALLS = array(
 	"addPlayer"			=> "addNewPlayer",
 	"listEventTypes"	=> "getAllEventTypesByDate",
 	"addEvent"			=> "addNewEvent",
+	"updateEvent"		=> "updateEvent",
 	"addResult"			=> "addNewResult",
 	"updateResult"		=> "updateResult",
 	"deleteEvent"		=> "deleteEvent",
@@ -34,7 +35,8 @@ const EVENT_LIST_SQL = "select
 		case when e.eventName = '' then concat(e.city,' ',et.label) else e.eventName end AS eventName,
 		et.points AS points,
 		e.playerCount AS playerCount,
-		s.year as season
+		s.year as season,
+		e.eventTypeId as eventTypeId
 	from
 		events e
 			left join results r
@@ -139,7 +141,8 @@ function getEventDetails($eventSql) {
 			"eventWinnerCountryCode"	=> $event["eventWinnerCountryCode"],
 			"eventPoints"				=> json_decode($event["points"], true),
 			"playerCount"				=> (int)$event["playerCount"],
-			"season"					=> (int)$event["season"]
+			"season"					=> (int)$event["season"],
+			"eventTypeId"				=> (int)$event["eventTypeId"]
 		);
 	}
 	
@@ -650,6 +653,56 @@ function addNewEvent() {
 		"result"	=> "success",
 		"status"	=> 200,
 		"data"		=> $eventId
+	];
+}
+
+function updateEvent() {
+	global $mysqli;
+	
+	if ( ! isset($_GET["key"]) || ! isset(API_KEY[$_GET["key"]]) ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "This API call requires a valid API key.",
+			"status"	=> 400
+		];
+	}
+	
+	$eventId = "";
+	$eventName = "";
+	$countryCode = "";
+	$eventDate = "";
+	$eventTypeId = "";
+	$playerCount = "";
+	$apiKey = $_GET["key"];
+	
+	if ( isset($_GET["eventId"]) )		$eventId = $_GET["eventId"];
+	if ( isset($_GET["eventName"]) )	$eventName = $_GET["eventName"];
+	if ( isset($_GET["countryCode"]) )	$countryCode = strtoupper($_GET["countryCode"]);
+	if ( isset($_GET["eventDate"]) )	$eventDate = $_GET["eventDate"];
+	if ( isset($_GET["eventTypeId"]) )	$eventTypeId = $_GET["eventTypeId"];
+	if ( isset($_GET["playerCount"]) )	$playerCount = $_GET["playerCount"];
+	
+	if ( $eventId == "" || $eventName == "" || $countryCode == "" || $eventDate == "" || $eventTypeId == "" ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "This API call requires a minimum of an event name, a country code, a date and an event type to be specified.",
+			"status"	=> 400
+		];
+	}
+	
+	if ( $playerCount == "" ) $playerCount = 0;
+	
+	$sql = "Update events Set eventName = ?, country = ?, date = ?, eventTypeId = ?, playerCount = ?, api = ? Where id = ?;";
+	
+	$stmt = $mysqli->prepare($sql);
+	$stmt->bind_param("sssiisi", $eventName, $countryCode, $eventDate, $eventTypeId, $playerCount, $apiKey, $eventId);
+	$stmt->execute();
+	$stmt->close();
+	
+	return [
+		"result"	=> "success",
+		"status"	=> 200,
+		"data"		=> null
 	];
 }
 

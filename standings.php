@@ -32,10 +32,12 @@
 			$eventName = $resultData["data"]["events"][$eventId]["eventName"];
 			$eventCountryCode = strtolower($resultData["data"]["events"][$eventId]["countryCode"]);
 			$eventCountry = $resultData["data"]["events"][$eventId]["countryName"];
+			$eventHasCp = ($resultData["data"]["results"][$eventId][1]["points"]) > 0;
 		} else {
 			$eventName = "Unknown Event";
 			$eventCountryCode = "xxx";
 			$eventCountry = "";
+			$eventHasCp = false;
 		}
 	}
 ?>
@@ -66,7 +68,7 @@
 				   <th class="text-center" data-sorted="true" data-direction="ASC" data-type="number">#</th>
 				   <th class="text-center" data-breakpoints="xs sm"><span class="hide-detail-row">Country</span></th>
 				   <th class="text-center">Player</th>
-				   <th class="text-center" data-type="number" data-breakpoints="xs">CP</th>
+				   <th class="text-center" <? echo ($eventHasCp ? "" : "data-visible='false' "); ?> data-type="number" data-breakpoints="xs">CP</th>
 				   <th class="text-center" data-breakpoints="xs"><span class="hide-detail-row">Team</span></th>
 				   <th class="text-center" data-breakpoints="xs sm">Export Team</th>
 			  </thead>
