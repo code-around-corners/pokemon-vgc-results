@@ -135,9 +135,6 @@
 					</p>
 					<textarea id="export" style="width: 100%" rows="20"></textarea>
 				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-				</div>
 			</div>
 		</div>
 	</div>

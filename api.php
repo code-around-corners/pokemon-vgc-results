@@ -2,271 +2,25 @@
 
 include_once("resources/php/functions.php");
 include_once("resources/php/config.php");
+include_once("resources/php/countries.php");
 
 const VALID_API_CALLS = array(
 	"listEvents" 		=> "getEventList",
 	"eventResults"		=> "getSingleEventResults",
 	"playerInfo"		=> "getSinglePlayer",
 	"listPlayers"		=> "getAllPlayers",
+	"listPlayersOnly"	=> "getPlayersAjax",
 	"validate"			=> "bulkLoadValidate",
 	"listCountries"		=> "getCountryList",
 	"addPlayer"			=> "addNewPlayer",
 	"listEventTypes"	=> "getAllEventTypesByDate",
 	"addEvent"			=> "addNewEvent",
 	"addResult"			=> "addNewResult",
+	"updateResult"		=> "updateResult",
 	"deleteEvent"		=> "deleteEvent",
 	"setSessionKey"		=> "setSessionKey",
 	"mergePlayers"		=> "mergePlayers",
-);
-
-const VALID_COUNTRY_CODES = array(
-	"AFG" => "Afghanistan",
-	"ALA" => "Aland Islands",
-	"ALB" => "Albania",
-	"DZA" => "Algeria",
-	"ASM" => "American Samoa",
-	"AND" => "Andorra",
-	"AGO" => "Angola",
-	"AIA" => "Anguilla",
-	"ATA" => "Antarctica",
-	"ATG" => "Antigua and Barbuda",
-	"ARG" => "Argentina",
-	"ARM" => "Armenia",
-	"ABW" => "Aruba",
-	"AUS" => "Australia",
-	"AUT" => "Austria",
-	"AZE" => "Azerbaijan",
-	"BHS" => "Bahamas",
-	"BHR" => "Bahrain",
-	"BGD" => "Bangladesh",
-	"BRB" => "Barbados",
-	"BLR" => "Belarus",
-	"BEL" => "Belgium",
-	"BLZ" => "Belize",
-	"BEN" => "Benin",
-	"BMU" => "Bermuda",
-	"BTN" => "Bhutan",
-	"BOL" => "Bolivia",
-	"BIH" => "Bosnia and Herzegovina",
-	"BWA" => "Botswana",
-	"BVT" => "Bouvet Island",
-	"BRA" => "Brazil",
-	"VGB" => "British Virgin Islands",
-	"IOT" => "British Indian Ocean Territory",
-	"BRN" => "Brunei Darussalam",
-	"BGR" => "Bulgaria",
-	"BFA" => "Burkina Faso",
-	"BDI" => "Burundi",
-	"KHM" => "Cambodia",
-	"CMR" => "Cameroon",
-	"CAN" => "Canada",
-	"CPV" => "Cape Verde",
-	"CYM" => "Cayman Islands",
-	"CAF" => "Central African Republic",
-	"TCD" => "Chad",
-	"CHL" => "Chile",
-	"CHN" => "China",
-	"HKG" => "Hong Kong",
-	"MAC" => "Macao",
-	"CXR" => "Christmas Island",
-	"CCK" => "Cocos (Keeling) Islands",
-	"COL" => "Colombia",
-	"COM" => "Comoros",
-	"COG" => "Congo(Brazzaville)",
-	"COD" => "Congo, (Kinshasa)",
-	"COK" => "Cook Islands",
-	"CRI" => "Costa Rica",
-	"CIV" => "Côte d'Ivoire",
-	"HRV" => "Croatia",
-	"CUB" => "Cuba",
-	"CYP" => "Cyprus",
-	"CZE" => "Czech Republic",
-	"DNK" => "Denmark",
-	"DJI" => "Djibouti",
-	"DMA" => "Dominica",
-	"DOM" => "Dominican Republic",
-	"ECU" => "Ecuador",
-	"EGY" => "Egypt",
-	"SLV" => "El Salvador",
-	"GNQ" => "Equatorial Guinea",
-	"ERI" => "Eritrea",
-	"EST" => "Estonia",
-	"ETH" => "Ethiopia",
-	"FLK" => "Falkland Islands (Malvinas)",
-	"FRO" => "Faroe Islands",
-	"FJI" => "Fiji",
-	"FIN" => "Finland",
-	"FRA" => "France",
-	"GUF" => "French Guiana",
-	"PYF" => "French Polynesia",
-	"ATF" => "French Southern Territories",
-	"GAB" => "Gabon",
-	"GMB" => "Gambia",
-	"GEO" => "Georgia",
-	"DEU" => "Germany",
-	"GHA" => "Ghana",
-	"GIB" => "Gibraltar",
-	"GRC" => "Greece",
-	"GRL" => "Greenland",
-	"GRD" => "Grenada",
-	"GLP" => "Guadeloupe",
-	"GUM" => "Guam",
-	"GTM" => "Guatemala",
-	"GGY" => "Guernsey",
-	"GIN" => "Guinea",
-	"GNB" => "Guinea-Bissau",
-	"GUY" => "Guyana",
-	"HTI" => "Haiti",
-	"HMD" => "Heard and Mcdonald Islands",
-	"VAT" => "Vatican",
-	"HND" => "Honduras",
-	"HUN" => "Hungary",
-	"ISL" => "Iceland",
-	"IND" => "India",
-	"IDN" => "Indonesia",
-	"IRN" => "Iran",
-	"IRQ" => "Iraq",
-	"IRL" => "Ireland",
-	"IMN" => "Isle of Man",
-	"ISR" => "Israel",
-	"ITA" => "Italy",
-	"JAM" => "Jamaica",
-	"JPN" => "Japan",
-	"JEY" => "Jersey",
-	"JOR" => "Jordan",
-	"KAZ" => "Kazakhstan",
-	"KEN" => "Kenya",
-	"KIR" => "Kiribati",
-	"PRK" => "North Korea",
-	"KOR" => "South Korea",
-	"KWT" => "Kuwait",
-	"KGZ" => "Kyrgyzstan",
-	"LAO" => "Lao PDR",
-	"LVA" => "Latvia",
-	"LBN" => "Lebanon",
-	"LSO" => "Lesotho",
-	"LBR" => "Liberia",
-	"LBY" => "Libya",
-	"LIE" => "Liechtenstein",
-	"LTU" => "Lithuania",
-	"LUX" => "Luxembourg",
-	"MKD" => "Macedonia",
-	"MDG" => "Madagascar",
-	"MWI" => "Malawi",
-	"MYS" => "Malaysia",
-	"MDV" => "Maldives",
-	"MLI" => "Mali",
-	"MLT" => "Malta",
-	"MHL" => "Marshall Islands",
-	"MTQ" => "Martinique",
-	"MRT" => "Mauritania",
-	"MUS" => "Mauritius",
-	"MYT" => "Mayotte",
-	"MEX" => "Mexico",
-	"FSM" => "Micronesia",
-	"MDA" => "Moldova",
-	"MCO" => "Monaco",
-	"MNG" => "Mongolia",
-	"MNE" => "Montenegro",
-	"MSR" => "Montserrat",
-	"MAR" => "Morocco",
-	"MOZ" => "Mozambique",
-	"MMR" => "Myanmar",
-	"NAM" => "Namibia",
-	"NRU" => "Nauru",
-	"NPL" => "Nepal",
-	"NLD" => "Netherlands",
-	"ANT" => "Netherlands Antilles",
-	"NCL" => "New Caledonia",
-	"NZL" => "New Zealand",
-	"NIC" => "Nicaragua",
-	"NER" => "Niger",
-	"NGA" => "Nigeria",
-	"NIU" => "Niue",
-	"NFK" => "Norfolk Island",
-	"MNP" => "Northern Mariana Islands",
-	"NOR" => "Norway",
-	"OMN" => "Oman",
-	"PAK" => "Pakistan",
-	"PLW" => "Palau",
-	"PSE" => "Palestinian Territory",
-	"PAN" => "Panama",
-	"PNG" => "Papua New Guinea",
-	"PRY" => "Paraguay",
-	"PER" => "Peru",
-	"PHL" => "Philippines",
-	"PCN" => "Pitcairn",
-	"POL" => "Poland",
-	"PRT" => "Portugal",
-	"PRI" => "Puerto Rico",
-	"QAT" => "Qatar",
-	"REU" => "Réunion",
-	"ROU" => "Romania",
-	"RUS" => "Russia",
-	"RWA" => "Rwanda",
-	"BLM" => "Saint-Barthélemy",
-	"SHN" => "Saint Helena",
-	"KNA" => "Saint Kitts and Nevis",
-	"LCA" => "Saint Lucia",
-	"MAF" => "Saint-Martin (French part)",
-	"SPM" => "Saint Pierre and Miquelon",
-	"VCT" => "Saint Vincent and Grenadines",
-	"WSM" => "Samoa",
-	"SMR" => "San Marino",
-	"STP" => "Sao Tome and Principe",
-	"SAU" => "Saudi Arabia",
-	"SEN" => "Senegal",
-	"SRB" => "Serbia",
-	"SYC" => "Seychelles",
-	"SLE" => "Sierra Leone",
-	"SGP" => "Singapore",
-	"SVK" => "Slovakia",
-	"SVN" => "Slovenia",
-	"SLB" => "Solomon Islands",
-	"SOM" => "Somalia",
-	"ZAF" => "South Africa",
-	"SGS" => "South Georgia and the South Sandwich Islands",
-	"SSD" => "South Sudan",
-	"ESP" => "Spain",
-	"LKA" => "Sri Lanka",
-	"SDN" => "Sudan",
-	"SUR" => "Suriname",
-	"SJM" => "Svalbard and Jan Mayen Islands",
-	"SWZ" => "Swaziland",
-	"SWE" => "Sweden",
-	"CHE" => "Switzerland",
-	"SYR" => "Syria",
-	"TWN" => "Taiwan",
-	"TJK" => "Tajikistan",
-	"TZA" => "Tanzania",
-	"THA" => "Thailand",
-	"TLS" => "Timor-Leste",
-	"TGO" => "Togo",
-	"TKL" => "Tokelau",
-	"TON" => "Tonga",
-	"TTO" => "Trinidad and Tobago",
-	"TUN" => "Tunisia",
-	"TUR" => "Turkey",
-	"TKM" => "Turkmenistan",
-	"TCA" => "Turks and Caicos Islands",
-	"TUV" => "Tuvalu",
-	"UGA" => "Uganda",
-	"UKR" => "Ukraine",
-	"ARE" => "United Arab Emirates",
-	"GBR" => "United Kingdom",
-	"USA" => "United States of America",
-	"UMI" => "US Minor Outlying Islands",
-	"URY" => "Uruguay",
-	"UZB" => "Uzbekistan",
-	"VUT" => "Vanuatu",
-	"VEN" => "Venezuela",
-	"VNM" => "Vietnam",
-	"VIR" => "Virgin Islands, US",
-	"WLF" => "Wallis and Futuna Islands",
-	"ESH" => "Western Sahara",
-	"YEM" => "Yemen",
-	"ZMB" => "Zambia",
-	"ZWE" => "Zimbabwe"
+	"validateShowdown"	=> "validateShowdown",
 );
 
 const EVENT_LIST_SQL = "select
@@ -313,10 +67,11 @@ from
 			on r.playerId = p.id ";
 
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+mysqli_set_charset($mysqli, "utf8");
 
 $apiCommand = $_GET["command"];
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 if ( isset(VALID_API_CALLS[$apiCommand]) ) {
 	$json = VALID_API_CALLS[$apiCommand]();
@@ -370,11 +125,14 @@ function getEventDetails($eventSql) {
 	
 	while ( $event = $events->fetch_assoc() ) {
 		$eventId = $event["eventId"];
+		$countryCode = $event["country"];
+		if ( $countryCode == "" ) $countryCode = "XXX";
+		
 		$eventList[$eventId] = array(
 			"date"						=> date($event["date"]),
 			"city"						=> $event["city"],
-			"countryCode"				=> $event["country"],
-			"countryName"				=> VALID_COUNTRY_CODES[$event["country"]],
+			"countryCode"				=> $countryCode,
+			"countryName"				=> VALID_COUNTRY_CODES[$countryCode],
 			"eventWinnerId"				=> (int)$event["eventWinnerId"],
 			"eventWinner"				=> $event["eventWinner"],
 			"eventName"					=> $event["eventName"],
@@ -406,11 +164,14 @@ function getEventResultData($sql) {
 			$eventSql .= ", " . $mysqli->real_escape_string($eventId);
 		}
 		
+		$playerCountryCode = $result["playerCountry"];
+		if ( $playerCountryCode == "" ) $playerCountryCode = "XXX";
+		
 		$resultsList[$eventId][$position] = array(
 			"playerId"			=> (int)$result["playerId"],
-			"playerName"		=> $result["playerName"],
-			"playerCountryCode"	=> $result["playerCountry"],
-			"playerCountryName"	=> VALID_COUNTRY_CODES[$result["playerCountry"]],
+			"playerName"		=> trim($result["playerName"]),
+			"playerCountryCode"	=> $playerCountryCode,
+			"playerCountryName"	=> VALID_COUNTRY_CODES[$playerCountryCode],
 			"position"			=> (int)$position,
 			"points"			=> 0,
 			"prizeMoney"		=> 0,
@@ -487,11 +248,14 @@ function getSinglePlayer() {
 	$playerData = array();
 	
 	if ( $player = $playerInfo->fetch_assoc() ) {
+		$countryCode = $player["country"];
+		if ( $countryCode == "" ) $countryCode = "XXX";
+		
 		$playerData = array(
 			"playerId"		=> $playerId,
-			"playerName"	=> $player["playerName"],
-			"countryCode"	=> $player["country"],
-			"countryName"	=> VALID_COUNTRY_CODES[$player["country"]],
+			"playerName"	=> trim($player["playerName"]),
+			"countryCode"	=> $countryCode,
+			"countryName"	=> VALID_COUNTRY_CODES[$countryCode],
 			"socialMedia"	=> array()
 		);
 		
@@ -547,13 +311,16 @@ function getAllPlayers() {
 	$playerData = array();
 	
 	while ( $player = $playerInfo->fetch_assoc() ) {
+		$countryCode = $player["country"];
+		if ( $countryCode == "" ) $countryCode = "XXX";
+		
 		$playerData[$player["id"]] = array(
 			"playerId"		=> $player["id"],
-			"playerName"	=> $player["playerName"],
-			"countryCode"	=> $player["country"],
-			"countryName"	=> VALID_COUNTRY_CODES[$player["country"]],
+			"playerName"	=> trim($player["playerName"]),
+			"countryCode"	=> $countryCode,
+			"countryName"	=> VALID_COUNTRY_CODES[$countryCode],
 			"socialMedia"	=> array(),
-			"lastEventDate"	=> $player["lastEventDate"]
+			"lastEventDate"	=> (isset($player["lastEventDate"]) ? $player["lastEventDate"] : null)
 		);
 		
 		if ( $player["facebook"] != "" ) {
@@ -609,11 +376,54 @@ function getAllPlayers() {
 	}
 	
 	$playerInfo->free();
-	
+		
 	return [
 		"result"	=> "success",
 		"status"	=> 200,
 		"data"		=> $playerData
+	];
+}
+
+
+function getPlayersAjax() {
+	global $mysqli;
+	
+	$sql = "Select
+		p.id,
+		p.playerName,
+		p.country
+	From
+		players p
+	Where
+		active = 1
+	";
+	
+	$searchTerm = "";
+	if ( isset($_GET["q"]) ) $searchTerm = sanitizeName($_GET["q"]);
+	
+	$playerInfo = $mysqli->query($sql);
+	$playerData = array();
+	
+	while ( $player = $playerInfo->fetch_assoc() ) {
+		$checkName = sanitizeName($player["playerName"]);
+		
+		if ( $searchTerm == "" || strpos($checkName, $searchTerm) !== false ) {
+			$countryCode = $player["country"];
+			if ( $countryCode == "" ) $countryCode = "XXX";
+			
+			$playerData[count($playerData)] = array(
+				"id"	=> $player["id"],
+				"text"	=> trim($player["playerName"]) . " (" . VALID_COUNTRY_CODES[$countryCode] . ") [ID: " . $player["id"] . "]"
+			);
+		}
+	}
+	
+	$playerInfo->free();
+		
+	return [
+		"result"	=> "success",
+		"status"	=> 200,
+		"results"	=> $playerData
 	];
 }
 
@@ -643,10 +453,13 @@ function bulkLoadValidate() {
 		$playerName = $input[1];
 		$validPlayerIds = array();
 		
+		$checkName = sanitizeName($playerName);
+		
 		foreach($playerList["data"] as $player) {
-			if ( strtolower($player["playerName"]) == strtolower($playerName) ) {
+			
+			if ( sanitizeName($player["playerName"]) == $checkName ) {
 				$validPlayerIds[$player["playerId"]] = array(
-					"playerName"	=> $playerName,
+					"playerName"	=> trim($playerName),
 					"countryCode"	=> $player["countryCode"],
 					"countryName"	=> $player["countryName"]
 				);
@@ -676,6 +489,36 @@ function bulkLoadValidate() {
 	];
 }
 
+function validateShowdown() {
+	$pokemon = "";
+	if ( isset($_GET["pokemon"]) ) {
+		$pokemon = base64_decode($_GET["pokemon"]);
+	}
+	
+	if ( $pokemon == "" ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "This API call requires a Pokémon.",
+			"status"	=> 400
+		];
+	}
+	
+	$decoded = decodePokemonShowdown($pokemon);
+	$encoded = encodePokemonShowdown(decodePokemonShowdown($pokemon));
+	
+	return [
+		"result"	=> "success",
+		"status"	=> 200,
+		"data"		=> $decoded,
+		"showdown"	=> $encoded,
+		"class"		=> getSpriteClass($decoded)
+	];
+}
+
+function sanitizeName($name) {
+	return preg_replace("/[^a-z0-9]/", "", strtolower(iconv('UTF-8', 'ASCII//TRANSLIT', $name)));
+}
+
 function getCountryList() {
 	return [
 		"result"	=> "success",
@@ -700,7 +543,7 @@ function addNewPlayer() {
 	$twitter = "";
 	$apiKey = $_GET["key"];
 	
-	if ( isset($_GET["playerName"]) )	$playerName = $_GET["playerName"];
+	if ( isset($_GET["playerName"]) )	$playerName = trim($_GET["playerName"]);
 	if ( isset($_GET["countryCode"]) )	$countryCode = strtoupper($_GET["countryCode"]);
 	if ( isset($_GET["twitter"]) )		$twitter = $_GET["twitter"];
 	
@@ -854,6 +697,62 @@ function addNewResult() {
 	$stmt->bind_param("iiiss", $eventId, $playerId, $position, $encodedTeam, $apiKey);
 	$stmt->execute();
 	echo $stmt->error;
+	$resultId = $stmt->insert_id;
+	$stmt->close();
+	
+	return [
+		"result"	=> "success",
+		"status"	=> 200,
+		"data"		=> $resultId
+	];
+}
+
+function updateResult() {
+	global $mysqli;
+	
+	if ( ! isset($_GET["key"]) || ! isset(API_KEY[$_GET["key"]]) ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "This API call requires a valid API key.",
+			"status"	=> 400
+		];
+	}
+	
+	$eventId = "";
+	$playerId = "";
+	$position = "";
+	$team = array();
+	$apiKey = $_GET["key"];
+	
+	if ( isset($_GET["eventId"]) )		$eventId = $_GET["eventId"];
+	if ( isset($_GET["playerId"]) )		$playerId = $_GET["playerId"];
+	if ( isset($_GET["position"]) )		$position = $_GET["position"];
+	
+	if ( isset($_GET["pokemon1"]) )		$team[0] = decodePokemonShowdown(base64_decode($_GET["pokemon1"]));
+	if ( isset($_GET["pokemon2"]) )		$team[1] = decodePokemonShowdown(base64_decode($_GET["pokemon2"]));
+	if ( isset($_GET["pokemon3"]) )		$team[2] = decodePokemonShowdown(base64_decode($_GET["pokemon3"]));
+	if ( isset($_GET["pokemon4"]) )		$team[3] = decodePokemonShowdown(base64_decode($_GET["pokemon4"]));
+	if ( isset($_GET["pokemon5"]) )		$team[4] = decodePokemonShowdown(base64_decode($_GET["pokemon5"]));
+	if ( isset($_GET["pokemon6"]) )		$team[5] = decodePokemonShowdown(base64_decode($_GET["pokemon6"]));
+	
+	if ( $eventId == "" || $playerId == "" || $position == "" ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "This API call requires a minimum of an event ID, a player ID, a finishing position and a team.",
+			"status"	=> 400
+		];
+	}
+	
+	$encodedTeam = json_encode($team);
+
+	$stmt = $mysqli->prepare("Delete From results Where eventId = ? And position = ?;");
+	$stmt->bind_param("ii", $eventId, $position);
+	$stmt->execute();
+	$stmt->close();
+	
+	$stmt = $mysqli->prepare("Insert Into results ( eventId, playerId, position, team, api ) Values ( ?, ?, ?, ?, ? );");
+	$stmt->bind_param("iiiss", $eventId, $playerId, $position, $encodedTeam, $apiKey);
+	$stmt->execute();
 	$resultId = $stmt->insert_id;
 	$stmt->close();
 	

@@ -17,11 +17,26 @@
 
 	if ( isset($_GET["id"]) ) {
 		$eventId = $_GET["id"];
-		$resultData = json_decode(file_get_contents(getBaseUrl() . "api.php?command=eventResults&eventId=" . $eventId), true);
+		$resultJson = file_get_contents(getBaseUrl() . "api.php?command=eventResults&eventId=" . $eventId);
+		
+		if ( $resultJson != "" ) {
+			$resultData = json_decode($resultJson, true);
+			if ( ! isset($resultData["data"]["events"][$eventId]) ) {
+				$resultData = null;
+			}
+		} else {
+			$resultData = null;
+		}
 
-		$eventName = $resultData["data"]["events"][$eventId]["eventName"];
-		$eventCountryCode = strtolower($resultData["data"]["events"][$eventId]["countryCode"]);
-		$eventCountry = $resultData["data"]["events"][$eventId]["countryName"];
+		if ( $resultData !== null ) {
+			$eventName = $resultData["data"]["events"][$eventId]["eventName"];
+			$eventCountryCode = strtolower($resultData["data"]["events"][$eventId]["countryCode"]);
+			$eventCountry = $resultData["data"]["events"][$eventId]["countryName"];
+		} else {
+			$eventName = "Unknown Event";
+			$eventCountryCode = "xxx";
+			$eventCountry = "";
+		}
 	}
 ?>
 	<div class="grey-header container">
@@ -34,7 +49,12 @@
 <?	if ( $resultData["data"]["events"][$eventId]["playerCount"] > 0 ) { ?>
 			 | <? echo $resultData["data"]["events"][$eventId]["playerCount"]; ?> Players
 <?	} ?>
-		 </h6>
+<?	if ( isset($_SESSION['apiUser']) && $_SESSION['apiUser'] != "" ) { ?>
+		<span class="text-center"> | 
+			<a href="edit.php?eventId=<? echo $eventId; ?>">Edit This Event</a>
+		</span>
+<?	} ?>
+		</h6>
 	</div>
 	
 <?	makeSearchBarHtml(null); ?>
@@ -51,16 +71,17 @@
 				   <th class="text-center" data-breakpoints="xs sm">Export Team</th>
 			  </thead>
 			  <tbody>
-		
-<?	foreach($resultData["data"]["results"][$eventId] as $position => $result) { ?>
-<?		if ( $result["points"] == 0 && $showOnlyCp ) continue; ?>
+
+<?	if ( $resultData !== null ) { ?>
+<?		foreach($resultData["data"]["results"][$eventId] as $position => $result) { ?>
+<?			if ( $result["points"] == 0 && $showOnlyCp ) continue; ?>
 				<tr>
 					<td></td>
 					<td class="text-center"><? echo $position; ?></td>
 					<td class="text-center hide-detail-row" data-filter-value="<? echo $result["playerCountryName"]; ?>">
-<?		if ( $result["playerCountryCode"] != "" ) { ?>
+<?			if ( $result["playerCountryCode"] != "" ) { ?>
 						<img src="resources/images/flags/<? echo strtolower($result["playerCountryCode"]); ?>.png" title="<? echo $result["playerCountryName"]; ?>" class="icon tttooltip"/>
-<?		} ?>
+<?			} ?>
 					</td>
 					<td class="text-center">
 					 	<a href="player.php?id=<? echo $result["playerId"]; ?>">
@@ -69,30 +90,31 @@
 						</a>
 						<span class="d-sm-inline d-md-none">
 							<br />
-<?		foreach($result["team"] as $pokemon) { ?>
+<?			foreach($result["team"] as $pokemon) { ?>
 							<span class="tttooltip d-md-inline d-lg-none <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
-<?		} ?>
+<?			} ?>
 						</span>
 					 </td>
 					<td class="text-center"><? echo $result["points"]; ?></td>
-<?		$pokemonSearch = ""; ?>
-<?		$showdownExport = ""; ?>
-<?		foreach($result["team"] as $pokemon) { ?>
-<?			$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
-<?			$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
-<?		} ?>
+<?			$pokemonSearch = ""; ?>
+<?			$showdownExport = ""; ?>
+<?			foreach($result["team"] as $pokemon) { ?>
+<?				$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
+<?				$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
+<?			} ?>
 					<td class="text-center hide-detail-row team-column" data-filter-value="<? echo $pokemonSearch; ?>">
-<?		foreach($result["team"] as $pokemon) { ?>
+<?			foreach($result["team"] as $pokemon) { ?>
 						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
-<?		} ?>
+<?			} ?>
 					</td>
 					<td class="text-center">
 						<a href="javascript:showExportBox('<? echo base64_encode($showdownExport); ?>');"><i class="fas fas-large fa-globe tttooltip" title="Export Pokemon Showdown"></i></a>
-<?		if ( $result["rentalLink"] != "" ) { ?>
+<?			if ( $result["rentalLink"] != "" ) { ?>
 						&nbsp;&nbsp;<a href="<? echo $result["rentalLink"]; ?>" target="_new"><i class="fas fas-large fa-qrcode tttooltip" title="Export Rental Team"></i></a>
-<?		} ?>
+<?			} ?>
 					</td>
 				</tr>
+<?		} ?>
 <?	} ?>
 			</tbody>
 		</table>
@@ -113,9 +135,6 @@
 						be available to export.
 					</p>
 					<textarea id="export" style="width: 100%" rows="20"></textarea>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 				</div>
 			</div>
 		</div>

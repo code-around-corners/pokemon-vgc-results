@@ -12,12 +12,12 @@
 
 	$playerJson = @file_get_contents(getBaseUrl() . "api.php?command=listPlayers");
 	
-	if ( $playerJson == "" ) {
-		$playerList = null;
-	} else {
+	if ( $playerJson !== "" ) {
 		$playerList = json_decode($playerJson, true);
+	} else {
+		$playerList = null;
 	}
-
+	
 	$periodData = getSeasonDropdownData();
 ?>
     <div class="container">

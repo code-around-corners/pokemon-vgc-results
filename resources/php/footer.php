@@ -1,6 +1,6 @@
 <?php
 	if ( isset($_SESSION['apiKey']) && ! isset($_SESSION['apiUser']) ) {
-		$userName = json_decode(file_get_contents("https://results.trainertower.com/api.php?command=setSessionKey&apiKey=" . $_SESSION['apiKey']), true);
+		$userName = json_decode(file_get_contents(getBaseUrl() . "api.php?command=setSessionKey&apiKey=" . $_SESSION['apiKey']), true);
 		$_SESSION['apiUser'] = $userName["data"];
 	}
 ?>
@@ -40,6 +40,7 @@
     <script type="text/javascript" src="vendor/footable/js/footable.min.js"></script>
 	<script type="text/javascript" src="vendor/tooltipster/js/tooltipster.bundle.min.js"></script>
 	<script type="text/javascript" src="vendor/datepicker/js/bootstrap-datepicker.min.js"></script>
+	<script type="text/javascript" src="vendor/select2/js/select2.full.min.js"></script>
 	
 	<script type="text/javascript">
 		$("#currentApiKey").click(function() {

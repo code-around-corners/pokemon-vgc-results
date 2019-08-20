@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="vendor/footable/css/footable.bootstrap.css" />
 	<link rel="stylesheet" type="text/css" href="vendor/tooltipster/css/tooltipster.bundle.min.css" />
 	<link rel="stylesheet" type="text/css" href="vendor/datepicker/css/bootstrap-datepicker.min.css" />
+	<link rel="stylesheet" type="text/css" href="vendor/select2/css/select2.min.css" />
 
     <link rel="stylesheet" href="resources/css/custom.css" />
     
