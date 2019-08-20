@@ -30,6 +30,11 @@
         <h4 class="event-name">
 	        <b>Edit VGC Results</b>
 	    </h4>
+		<h6 class="event-name">
+			<span class="text-center">
+				<a href="standings.php?id=<? echo $eventId; ?>">Return To This Event</a>
+			</span>
+		</h6>
     </div>
 
     <div class="container">
