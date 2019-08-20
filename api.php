@@ -7,6 +7,7 @@ include_once("resources/php/countries.php");
 const VALID_API_CALLS = array(
 	"listEvents" 		=> "getEventList",
 	"eventResults"		=> "getSingleEventResults",
+	"search"			=> "searchForTeams",
 	"playerInfo"		=> "getSinglePlayer",
 	"listPlayers"		=> "getAllPlayers",
 	"listPlayersOnly"	=> "getPlayersAjax",
@@ -232,6 +233,82 @@ function getEventResultData($sql) {
 		"results" => $resultsList,
 		"events" => $eventDetails
 	);
+}
+
+function searchForTeams() {
+	global $mysqli;
+	
+	$sql = "Select
+		r.id,
+		e.date,
+		e.country As eventCountryCode,
+		e.id As eventId,
+		e.eventName,
+		p.playerName,
+		p.country As playerCountryCode,
+		p.id As playerId,
+		r.team,
+		r.qrlink,
+		r.position
+	From
+		results r
+			Inner Join events e
+				On r.eventId = e.id
+			Inner Join players p
+				On r.playerId = p.id
+	Where
+		1=0";
+	
+	$search = "";
+	if ( isset($_GET["search"]) ) $search = $_GET["search"];
+	
+	if ( $search == "" ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "You must specify at least one search term.",
+			"status"	=> 400
+		];
+	}
+	
+	$terms = explode(" ", $search);
+	
+	foreach($terms as $term) {
+		$sql .= " Or Lower(r.team) Like \"%" . preg_replace("/[^a-z0-9]/", "", $term) . "%\"";
+	}
+	
+	$results = $mysqli->query($sql);
+	$resultsList = array();
+	
+	while ( $result = $results->fetch_assoc() ) {
+		$playerCountryCode = $result["playerCountryCode"];
+		if ( $playerCountryCode == "" ) $playerCountryCode = "XXX";
+
+		$eventCountyCode = $result["eventCountryCode"];
+		if ( $eventCountyCode == "" ) $eventCountyCode = "XXX";
+		
+		$resultsList[$result["id"]] = array(
+			"playerId"			=> (int)$result["playerId"],
+			"playerName"		=> trim($result["playerName"]),
+			"playerCountryCode"	=> $playerCountryCode,
+			"playerCountryName"	=> VALID_COUNTRY_CODES[$playerCountryCode],
+			"eventCountryCode"	=> $eventCountyCode,
+			"eventCountryName"	=> VALID_COUNTRY_CODES[$eventCountyCode],
+			"eventDate"			=> $result["date"],
+			"eventName"			=> $result["eventName"],
+			"eventId"			=> $result["eventId"],
+			"position"			=> (int)$result["position"],
+			"team"				=> sortPokemonTeam(json_decode($result["team"], true)),
+			"rentalLink"		=> $result["qrlink"]
+		);
+	}
+	
+	$results->free();
+	
+	return [
+		"result"	=> "success",
+		"status"	=> 400,
+		"data"		=> $resultsList
+	];
 }
 
 function getSingleEventResults() {

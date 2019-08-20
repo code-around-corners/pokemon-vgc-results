@@ -17,8 +17,12 @@
 	    "product"		=> array("Video Game")
 	);
 	
+	$defaultSocketTimeout = ini_get('default_socket_timeout');
+	ini_set('default_socket_timeout', 5);
 	$filtersEncoded = base64_encode(json_encode($filters));
 	$baseTournamentData = @file_get_contents("https://www.pokecal.com/api.php?command=listEvents&filters=" . $filtersEncoded);
+	ini_set('default_socket_timeout', $defaultSocketTimeout);
+
 	if ( $baseTournamentData != "" ) {
 		$tournaments = json_decode($baseTournamentData, true); 
 	} else {
@@ -30,14 +34,34 @@
 
 <div class="container">
 	<hr />
+	<h4 class="text-center">Trainer Tower Global Team Search</h4>
+	<hr />
+
+	<p>
+		Welcome to the Trainer Tower results site! This is your one stop shop for VGC tournament results from around
+		the world. Check what teams are doing well and prepare for your next event! Use the box below to search for teams
+		using specific Pokémon (and where available, movesets, items or abilities). Enter your search terms and hit the 
+		search button!
+	</p>
+	
+	<form action="teams.php" method="post" accept-charset="utf-8">
+	    <div>
+			<div class="input-group input-group-sm">
+				<input type="text" class="form-control" aria-label="Search" placeholder="Search for teams with specific Pokémon..." id="search-filter" name="search-filter" />
+				<div class="input-group-append">
+					<button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+				</div>
+	  		</div>
+	    </div>
+	</form>
+
+	<hr />
 	<h4 class="text-center">Upcoming Regional & Special Championships</h4>
 	<hr />
 	
 	<p>
-		Welcome to the Trainer Tower results site! This is your one stop shop for VGC tournament results from around
-		the world. Check what teams are doing well and prepare for your next event! You can also check below for upcoming
-		Regional & Special events - this data comes directly from the Pokemon website, so whilst some events may have been
-		announced, they won't appear below until they've been formally sanctioned.
+		You can also check below for upcoming Regional & Special events - this data comes directly from the Pokemon
+		website, so whilst some events may have been announced, they won't appear below until they've been formally sanctioned.
 	</p>
 	
 	<div class="row w-100">
