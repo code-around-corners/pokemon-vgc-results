@@ -52,9 +52,9 @@
 			 | <? echo $resultData["data"]["events"][$eventId]["playerCount"]; ?> Players
 <?	} ?>
 <?	if ( isset($_SESSION['apiUser']) && $_SESSION['apiUser'] != "" ) { ?>
-		<span class="text-center"> | 
-			<a href="edit.php?eventId=<? echo $eventId; ?>">Edit This Event</a>
-		</span>
+			<span class="text-center">
+				| <a href="edit.php?eventId=<? echo $eventId; ?>">Edit This Event</a>
+			</span>
 <?	} ?>
 		</h6>
 	</div>

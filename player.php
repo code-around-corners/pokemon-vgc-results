@@ -13,6 +13,7 @@
 	$playerId = -1;
 	$playerData = null;
 	$periodData = getSeasonDropdownData();
+	$countryList = json_decode(file_get_contents(getBaseUrl() . "api.php?command=listCountries"), true);
 
 	if ( isset($_GET["id"]) ) {
 		$playerId = (int)$_GET["id"];
@@ -50,6 +51,13 @@
 		    </a>
 <?	} ?>
         </h4>
+<?	if ( isset($_SESSION['apiUser']) && $_SESSION['apiUser'] != "" ) { ?>
+		<h6 class="event-name">
+			<span class="text-center">
+				<a href="#!" data-toggle="modal" data-target="#playerEdit">Edit This Player</a>
+			</span>
+		</h6>
+<?	} ?>
     </div>
     
 <?	makeSearchBarHtml($periodData); ?>
@@ -138,7 +146,75 @@
 			</div>
 		</div>
 	</div>
+<?	if ( isset($_SESSION['apiUser']) && $_SESSION['apiUser'] != "" ) { ?>
+	<div id="playerEdit" class="modal" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Edit Player Details</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="w-100 form-group">
+						<div class="row pb-1">
+							<div class="col-4">Player Name</div>
+							<div class="col-8">
+								<input type="text" class="form-control" id="playerName" value="<? echo $playerData["data"]["player"]["playerName"]; ?>" />
+							</div>
+						</div>
+						
+						<div class="row pb-1">
+							<div class="col-4">Player Country</div>
+							<div class="col-8">
+								<select class="w-100 form-control" id="playerCountry">
+									<option value=""></option>
+	<?	foreach($countryList["data"] as $countryCode => $countryName) { ?>
+									<option value="<? echo $countryCode; ?>"<? echo (strtolower($countryCode) == strtolower($playerData["data"]["player"]["countryCode"]) ? " selected" : ""); ?>><? echo getFlagEmoji($countryCode) . " " . $countryName; ?></option>
+	<?	} ?>
+								</select>
+							</div>
+						</div>
+						
+						<hr />
+						
+						<p>Social Media Accounts</p>
 
+						<div class="row pb-1">
+							<div class="col-4">Twitter</div>
+							<div class="col-8">
+								<input type="text" class="form-control" id="twitter" value="<? echo (isset($playerData["data"]["player"]["socialMedia"]["twitter"]) ? $playerData["data"]["player"]["socialMedia"]["twitter"] : "") ; ?>" />
+							</div>
+						</div>
+						<div class="row pb-1">
+							<div class="col-4">YouTube</div>
+							<div class="col-8">
+								<input type="text" class="form-control" id="youtube" value="<? echo (isset($playerData["data"]["player"]["socialMedia"]["youtube"]) ? $playerData["data"]["player"]["socialMedia"]["youtube"] : ""); ?>" />
+							</div>
+						</div>
+						<div class="row pb-1">
+							<div class="col-4">Facebook</div>
+							<div class="col-8">
+								<input type="text" class="form-control" id="facebook" value="<? echo (isset($playerData["data"]["player"]["socialMedia"]["facebook"]) ? $playerData["data"]["player"]["socialMedia"]["facebook"] : ""); ?>" />
+							</div>
+						</div>
+						<div class="row pb-1">
+							<div class="col-4">Twitch</div>
+							<div class="col-8">
+								<input type="text" class="form-control" id="twitch" value="<? echo (isset($playerData["data"]["player"]["socialMedia"]["twitch"]) ? $playerData["data"]["player"]["socialMedia"]["twitch"] : ""); ?>" />
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:updatePlayer();">Update Player Details</button>
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+<?	} ?>
 <?	include_once("resources/php/footer.php"); ?>
 	<script type="text/javascript">
 		function showExportBox(teamExport) {
@@ -169,6 +245,31 @@
 		        }
 			});
 		});
+		
+		function updatePlayer() {
+			playerId = <? echo $playerId; ?>;
+			playerName = $("#playerName").val();
+			playerCountry = $("#playerCountry").val();
+			twitter = $("#twitter").val();
+			youtube = $("#youtube").val();
+			facebook = $("#facebook").val();
+			twitch = $("#twitch").val();
+			
+			$.get("api.php", {
+				command:		"updatePlayer",
+				playerId:		playerId,
+				playerName:		playerName,
+				countryCode:	playerCountry,
+				twitter:		twitter,
+				youtube:		youtube,
+				facebook:		facebook,
+				twitch:			twitch,
+				key:			$("#currentApiKey").attr("data-api-key")
+			}).done(function(data) {
+				alert("Player details have been updated!");
+				location.reload();
+			});
+		}
 	</script>
 	<? echo makeSeasonDropdownJs($periodData); ?>
 </body>

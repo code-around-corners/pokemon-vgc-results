@@ -13,6 +13,7 @@ const VALID_API_CALLS = array(
 	"validate"			=> "bulkLoadValidate",
 	"listCountries"		=> "getCountryList",
 	"addPlayer"			=> "addNewPlayer",
+	"updatePlayer"		=> "updatePlayer",
 	"listEventTypes"	=> "getAllEventTypesByDate",
 	"addEvent"			=> "addNewEvent",
 	"updateEvent"		=> "updateEvent",
@@ -582,6 +583,55 @@ function addNewPlayer() {
 		"result"	=> "success",
 		"status"	=> 200,
 		"data"		=> $playerId
+	];
+}
+
+function updatePlayer() {
+	global $mysqli;
+	
+	if ( ! isset($_GET["key"]) || ! isset(API_KEY[$_GET["key"]]) ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "This API call requires a valid API key.",
+			"status"	=> 400
+		];
+	}
+	
+	$playerId = "";
+	$playerName = "";
+	$countryCode = "";
+	$twitter = "";
+	$youtube = "";
+	$facebook = "";
+	$twitch = "";
+	$apiKey = $_GET["key"];
+	
+	if ( isset($_GET["playerId"]) )		$playerId = $_GET["playerId"];
+	if ( isset($_GET["playerName"]) )	$playerName = $_GET["playerName"];
+	if ( isset($_GET["countryCode"]) )	$countryCode = strtoupper($_GET["countryCode"]);
+	if ( isset($_GET["twitter"]) )		$twitter = $_GET["twitter"];
+	if ( isset($_GET["youtube"]) )		$youtube = $_GET["youtube"];
+	if ( isset($_GET["facebook"]) )		$facebook = $_GET["facebook"];
+	if ( isset($_GET["twitch"]) )		$twitch = $_GET["twitch"];
+	
+	if ( $playerId == "" || $playerName == "" || $countryCode == "" ) {
+		return [
+			"result"	=> "error",
+			"error"		=> "This API call requires a minimum of a player ID, a player name and country code to be specified.",
+			"status"	=> 400
+		];
+	}
+	
+	$stmt = $mysqli->prepare("Update players Set playerName = ?, country = ?, twitter = ?, youtube = ?, facebook = ?, " .
+		"twitch = ?, api = ? Where id = ?;");
+	$stmt->bind_param("sssssssi", $playerName, $countryCode, $twitter, $youtube, $facebook, $twitch, $apiKey, $playerId);
+	$stmt->execute();
+	$stmt->close();
+	
+	return [
+		"result"	=> "success",
+		"status"	=> 200,
+		"data"		=> null
 	];
 }
 
