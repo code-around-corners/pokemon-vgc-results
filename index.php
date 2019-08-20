@@ -17,15 +17,15 @@
 	    "product"		=> array("Video Game")
 	);
 	
-//	$filtersEncoded = base64_encode(json_encode($filters));
-//	$baseTournamentData = @file_get_contents("https://www.pokecal.com/api.php?command=listEvents&filters=" . $filtersEncoded);
-//	if ( $baseTournamentData != "" ) {
-//		$tournaments = json_decode($baseTournamentData, true); 
-//	} else {
+	$filtersEncoded = base64_encode(json_encode($filters));
+	$baseTournamentData = @file_get_contents("https://www.pokecal.com/api.php?command=listEvents&filters=" . $filtersEncoded);
+	if ( $baseTournamentData != "" ) {
+		$tournaments = json_decode($baseTournamentData, true); 
+	} else {
 		$tournaments = array(
 			"data"	=> array()
 		);
-//	}
+	}
 ?>
 
 <div class="container">

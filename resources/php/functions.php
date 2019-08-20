@@ -1,7 +1,7 @@
 <?php
 
-include_once("resources/php/countries.php");
-include_once("resources/php/pokemon.php");
+include_once("countries.php");
+include_once("pokemon.php");
 
 function sortPokemonTeam($pokemon) {
 	$sortedPokemon = array();
@@ -614,7 +614,8 @@ function makeSearchBarHelp() {
 }
 
 function getBaseUrl() {
-	return "http://" . $_SERVER["SERVER_ADDR"] . substr($_SERVER["REQUEST_URI"], 0,
+	return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" .
+		$_SERVER["HTTP_HOST"] . substr($_SERVER["REQUEST_URI"], 0,
 		strlen($_SERVER["REQUEST_URI"]) - strlen(basename($_SERVER["REQUEST_URI"])));
 }
 
