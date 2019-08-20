@@ -68,6 +68,31 @@ from
 		left join (Select * From players Where active = 1) p
 			on r.playerId = p.id ";
 
+const LAST_EVENT_SQL = "SELECT
+    pr.playerId,
+    e.id As eventId,
+	e.eventName,
+	e.date,
+    r.position,
+    r.team
+FROM
+	events e
+    	Inner Join (
+            SELECT
+                Max(e.date) As lastEventDate,
+                r.playerId As playerId 
+            FROM
+                events e
+                    Inner Join results r
+                        On e.id = r.eventId
+            GROUP BY
+                r.playerId
+        ) pr
+        	On e.date = pr.lastEventDate
+        Inner Join results r
+        	On r.playerId = pr.playerId
+        		And e.id = r.eventId ";
+
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 mysqli_set_charset($mysqli, "utf8");
 
@@ -258,6 +283,7 @@ function getSinglePlayer() {
 			"playerId"		=> $playerId,
 			"playerName"	=> trim($player["playerName"]),
 			"countryCode"	=> $countryCode,
+			"countryEmoji"	=> getFlagEmoji($countryCode),
 			"countryName"	=> VALID_COUNTRY_CODES[$countryCode],
 			"socialMedia"	=> array()
 		);
@@ -281,6 +307,16 @@ function getSinglePlayer() {
 	
 	$playerInfo->free();
 	
+	$playerInfo = $mysqli->query(LAST_EVENT_SQL . " Where pr.playerId = " . $playerId);
+	
+	while ( $player = $playerInfo->fetch_assoc() ) {
+		$playerData["lastEventDate"] = $player["date"];
+		$playerData["lastTeam"] = sortPokemonTeam(json_decode($player["team"], true));
+		$playerData["lastEventId"] = $player["eventId"];
+	}
+	
+	$playerInfo->free();
+
 	$sql = EVENT_RESULTS_SQL . " Where playerId = " . $mysqli->real_escape_string($playerId) . ";";
 
 	return [
@@ -321,6 +357,7 @@ function getAllPlayers() {
 			"playerId"		=> $player["id"],
 			"playerName"	=> trim($player["playerName"]),
 			"countryCode"	=> $countryCode,
+			"countryEmoji"	=> getFlagEmoji($countryCode),
 			"countryName"	=> VALID_COUNTRY_CODES[$countryCode],
 			"socialMedia"	=> array(),
 			"lastEventDate"	=> (isset($player["lastEventDate"]) ? $player["lastEventDate"] : null)
@@ -345,32 +382,7 @@ function getAllPlayers() {
 	
 	$playerInfo->free();
 	
-	$sql = "SELECT
-	    pr.playerId,
-	    e.id As eventId,
-		e.eventName,
-		e.date,
-	    r.position,
-	    r.team
-	FROM
-		events e
-	    	Inner Join (
-	            SELECT
-	                Max(e.date) As lastEventDate,
-	                r.playerId As playerId 
-	            FROM
-	                events e
-	                    Inner Join results r
-	                        On e.id = r.eventId
-	            GROUP BY
-	                r.playerId
-	        ) pr
-	        	On e.date = pr.lastEventDate
-	        Inner Join results r
-	        	On r.playerId = pr.playerId
-	        		And e.id = r.eventId";
-
-	$playerInfo = $mysqli->query($sql);
+	$playerInfo = $mysqli->query(LAST_EVENT_SQL);
 	
 	while ( $player = $playerInfo->fetch_assoc() ) {
 		$playerData[$player["playerId"]]["lastEventDate"] = $player["date"];
@@ -399,6 +411,8 @@ function getPlayersAjax() {
 		players p
 	Where
 		active = 1
+	Order By
+		Trim(p.playerName)
 	";
 	
 	$searchTerm = "";

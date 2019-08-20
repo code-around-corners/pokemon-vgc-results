@@ -22,6 +22,7 @@
 					</a>
 					<div class="dropdown-menu">
 						<a class="dropdown-item" href="upload.php">Upload Results</a>
+						<a class="dropdown-item" href="merge.php">Merge Player Records</a>
 					</div>
 <?	} ?>
 				</li>

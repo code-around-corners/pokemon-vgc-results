@@ -152,8 +152,8 @@
 		
 		$(document).ready(function() {
 			$("#results").footable({
-			'on': {
-				'ready.ft.table': function(e, ft) {
+				'on': {
+					'ready.ft.table': function(e, ft) {
 						PkSpr.process_dom();
 						$(".tttooltip").tooltipster();
 					},
