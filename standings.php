@@ -54,6 +54,7 @@
 <?	if ( isset($_SESSION['apiUser']) && $_SESSION['apiUser'] != "" ) { ?>
 			<span class="text-center">
 				| <a href="edit.php?eventId=<? echo $eventId; ?>">Edit This Event</a>
+				| <a href="#!" class="delete-event" onclick="javascript:deleteEvent();">Delete This Event</a>
 			</span>
 <?	} ?>
 		</h6>
@@ -172,6 +173,27 @@
 				}
 			});
 		});
+		
+		function deleteEvent() {
+			if ( ! confirm("Are you sure you want to delete the event '<? echo $eventName; ?>'? All the standings and teams" +
+				"for this event will be removed from the system!") ) {
+			
+				return;
+			}
+			
+			if ( ! confirm("Please confirm again that you want to delete this event. This cannot be undone!") ) {
+				return;
+			}
+			
+			$.get("api.php", {
+				command:	"deleteEvent",
+				eventId:	<? echo $eventId; ?>,
+				key: 		$("#currentApiKey").attr("data-api-key")
+			}).done(function(data) {
+				alert("The event '<? echo $eventName; ?>' has been removed from the database.");
+				window.location = "index.php";
+			});
+		}
 	</script>
 	<? echo makeSeasonDropdownJs(null); ?>
 </body>
