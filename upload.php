@@ -12,36 +12,52 @@
 
 	$bulkInput = "";
 	$showValidation = false;
-	$countryList = json_decode(file_get_contents(getBaseUrl() . "api.php?command=listCountries"), true);
-
+	$countryList = json_decode(file_get_contents(getBaseUrl() . "api/v1/countries?format=dropdown"), true);
+	
 	if ( isset($_POST['bulk']) ) {
+		$playerList = json_decode(file_get_contents(getBaseUrl() . "api/v1/players"), true);
+		$playerDropdownList = json_decode(file_get_contents(getBaseUrl() . "api/v1/players?format=dropdown"), true);
+		
 		$showValidation = true;
-		$bulkInput = $_POST['bulk'];
+		$inputData = explode("\n", $_POST['bulk']);
 		
-		$bulkRows = explode("\n", $bulkInput);
+		$validatedData = array();
 		
-		$bulkBatch = array();
-		$currentCount = 0;
-		$currentBatch = 0;
-
-		foreach($bulkRows as $bulkRow) {
-			$bulkBatch[$currentBatch] .= $bulkRow . "\n";
+		foreach($inputData as $inputLine) {
+			if ( $inputLine == "" ) continue;
 			
-			$currentCount++;
-			if ( $currentCount == 8 ) {
-				$currentCount = 0;
-				$currentBatch++;
+			$input = explode(",", $inputLine);
+			
+			$position = $input[0];
+			$playerName = $input[1];
+			$validPlayerIds = array();
+			
+			$checkName = sanitize($playerName);
+			
+			foreach($playerList as $playerId => $player) {
+				if ( sanitize($player["name"]) == $checkName ) {
+					foreach($playerDropdownList["results"] as $playerDropdown) {
+						if ( $playerId == $playerDropdown["id"] ) {
+							$validPlayerIds[$playerId] = $playerDropdown["text"];
+						}
+					}
+				}
 			}
-		}
-		
-		$apiData = array();
-
-		foreach($bulkBatch as $batch) {
-			$batchApiData = json_decode(file_get_contents(getBaseUrl() . "api.php?command=validate&bulk=" . base64_encode($batch)), true);
-
-			foreach($batchApiData["data"] as $position => $record) {
-				$apiData[$position] = $record;
-			}
+			
+			$pokemon = array();
+			$pokemon[0] = (isset($input[2]) ? decodePokemonShowdown($input[2]) : "");
+			$pokemon[1] = (isset($input[3]) ? decodePokemonShowdown($input[3]) : "");
+			$pokemon[2] = (isset($input[4]) ? decodePokemonShowdown($input[4]) : "");
+			$pokemon[3] = (isset($input[5]) ? decodePokemonShowdown($input[5]) : "");
+			$pokemon[4] = (isset($input[6]) ? decodePokemonShowdown($input[6]) : "");
+			$pokemon[5] = (isset($input[7]) ? decodePokemonShowdown($input[7]) : "");
+			
+			$validatedData[$position] = array(
+				"position"			=> $position,
+				"playerName"		=> $playerName,
+				"validPlayerIds"	=> $validPlayerIds,
+				"team"				=> $pokemon
+			);
 		}
 	}
 ?>
@@ -57,7 +73,7 @@
 		    Position,Player,Pokemon 1,Pokemon 2,Pokemon 3,Pokemon 4,Pokemon 5,Pokemon 6
 	    </p>
 	    <form id="bulkInput" name="bulkData" method="post" action="upload.php">
-		    <textarea id="bulk" name="bulk" style="width: 100%" rows="10"><? echo $bulkInput; ?></textarea>
+		    <textarea id="bulk" name="bulk" style="width: 100%" rows="10"><? echo (isset($_POST['bulk']) ? $_POST['bulk'] : ""); ?></textarea>
 		    <div class="text-center">
 			    <button form="bulkInput" type="submit">Validate Input Data</button>
 			    <button type="button" onclick="javascript:stripMode1();">Strip Input Mode 1</button>
@@ -97,14 +113,14 @@
 		    </thead>
 		    <tbody>
 <?	$allMapped = true; ?>
-<?	foreach($apiData as $record) { ?>
+<?	foreach($validatedData as $record) { ?>
 <?		if ( count($record["validPlayerIds"]) == 0 ) $allMapped = false; ?>
 				<tr>
 					<td class="text-center"><? echo $record["position"]; ?></td>
 					<td class="text-center">
 						<select class="w-100">
 <?		foreach($record["validPlayerIds"] as $validPlayerId => $validPlayer) { ?>
-							<option value="<? echo $validPlayerId; ?>"><? echo $validPlayer["playerName"]; ?> [<? echo $validPlayer["countryName"]; ?>] (ID: <? echo $validPlayerId; ?>)</option>
+							<option value="<? echo $validPlayerId; ?>"><? echo $validPlayer; ?></option>
 <?		} ?>
 							<option value="-1"><? echo $record["playerName"]; ?> (New)</option>
 						</select>
@@ -191,8 +207,8 @@
 							<div class="col-8">
 								<select class="w-100 form-control" id="eventCountry">
 									<option value=""></option>
-	<?	foreach($countryList["data"] as $countryCode => $countryName) { ?>
-									<option value="<? echo $countryCode; ?>"><? echo $countryName; ?></option>
+	<?	foreach($countryList["results"] as $country) { ?>
+									<option value="<? echo $country["id"]; ?>"><? echo $country["text"]; ?></option>
 	<?	} ?>
 								</select>
 							</div>
@@ -307,9 +323,8 @@
 			playerList = getNewPlayerList();
 			
 			countrySelect = "<select>";
-			countrySelect += "<option value='xxx'>Unknown</option>";
-<?	foreach($countryList["data"] as $countryCode => $countryName) { ?>
-			countrySelect += "<option value='<? echo $countryCode; ?>'><? echo $countryName; ?></option>";
+<?	foreach($countryList["results"] as $country) { ?>
+			countrySelect += "<option value='<? echo $country["id"]; ?>'><? echo $country["text"]; ?></option>";
 <?	} ?>
 			countrySelect += "</select>";
 			
@@ -334,8 +349,7 @@
 				twitter = $(this).find("td").eq(2).find("input").eq(0).val();
 				
 				if ( playerName != "" ) {
-					$.get("api.php", {
-						command: "addPlayer",
+					$.post("api/v1/players", {
 						playerName: playerName,
 						countryCode: countryCode,
 						twitter: twitter,
@@ -348,14 +362,14 @@
 		}
 
 		function updateEventTypes() {
-			$.get("api.php", {
-				command: "listEventTypes",
-				date: $("#eventDate").val()
+			$.get("api/v1/event-types", {
+				date: $("#eventDate").val(),
+				format: "dropdown"
 			}).done(function(data) {
 				$("#eventType").find("option").remove();
 				
-				$.each(data["data"], function(eventTypeId, eventType) {
-					$("#eventType").append("<option value='" + eventTypeId + "'>" + eventType + "</option>");
+				$.each(data["results"], function(index, eventType) {
+					$("#eventType").append("<option value='" + eventType["id"] + "'>" + eventType["text"] + "</option>");
 				});
 			});
 		}
@@ -372,8 +386,7 @@
 				return;
 			}
 			
-			$.get("api.php", {
-				command: "addEvent",
+			$.post("api/v1/events", {
 				eventName: eventName,
 				countryCode: countryCode,
 				eventDate: eventDate,
@@ -381,9 +394,7 @@
 				playerCount: playerCount,
 				key: $("#currentApiKey").attr("data-api-key")
 			}).done(function(data) {
-				console.log(data);
-				
-				eventId = data["data"];
+				eventId = data["id"];
 				
 				$("#validation").find("tbody").find("tr").each(function() {
 					position = $(this).find("td").eq(0).text();
@@ -396,8 +407,7 @@
 					pokemon5 = btoa($(this).find("td").eq(2).find("textarea").eq(4).val());
 					pokemon6 = btoa($(this).find("td").eq(2).find("textarea").eq(5).val());
 					
-					$.get("api.php", {
-						command: "addResult",
+					$.post("api/v1/results", {
 						eventId: eventId,
 						position: position,
 						playerId: playerId,
@@ -408,12 +418,10 @@
 						pokemon5: pokemon5,
 						pokemon6: pokemon6,
 						key: $("#currentApiKey").attr("data-api-key")
-					}).done(function(data) {
-						console.log(data);
 					});
 				});
-				
-				alert("New event added! ID " + data["data"]);
+
+				alert("New event added! ID " + data["id"]);
 				window.location = "upload.php";
 			});
 		}

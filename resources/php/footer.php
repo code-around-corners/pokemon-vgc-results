@@ -1,10 +1,3 @@
-<?php
-	if ( isset($_SESSION['apiKey']) && ! isset($_SESSION['apiUser']) ) {
-		$userName = json_decode(file_get_contents(getBaseUrl() . "api.php?command=setSessionKey&apiKey=" . $_SESSION['apiKey']), true);
-		$_SESSION['apiUser'] = $userName["data"];
-	}
-?>
-	
 <?	makeSearchBarHelp(); ?>
 	<br />
     <footer>
@@ -17,11 +10,9 @@
 			        <strong>Trainer Tower</strong>
 		        </div>
 		        <div class="col-md-4 d-none d-md-block text-center">
-<?	if ( session_status() == PHP_SESSION_ACTIVE ) { ?>
-					<span id="currentApiKey" class="text-muted" data-api-key="<? echo (isset($_SESSION['apiKey']) ? $_SESSION['apiKey'] : ""); ?>">
-						<? echo ((isset($_SESSION['apiUser']) && $_SESSION['apiUser'] != "") ? $_SESSION['apiUser'] : "Set API Key"); ?>
+					<span id="currentApiKey" class="text-muted" data-api-key="<? echo (isset($_COOKIE["key"]) ? $_COOKIE["key"] : ""); ?>">
+						<? echo ((isset($_COOKIE["key"]) && $_COOKIE["key"] != "") ? "Logged In" : "Set API Key"); ?>
 					</span>
-<?	} ?>
 		        </div>
 		        <div class="col-2 col-md-4 text-md-right">
 					<a class="text-light" href="https://www.codearoundcorners.com">
@@ -41,17 +32,12 @@
 	<script type="text/javascript" src="vendor/tooltipster/js/tooltipster.bundle.min.js"></script>
 	<script type="text/javascript" src="vendor/datepicker/js/bootstrap-datepicker.min.js"></script>
 	<script type="text/javascript" src="vendor/select2/js/select2.full.min.js"></script>
+	<script type="text/javascript" src="vendor/js-cookie/js/js.cookie.js"></script>
 	
 	<script type="text/javascript">
 		$("#currentApiKey").click(function() {
 			apiKey = prompt("Please enter your API key:");
-			
-			$.get("api.php", {
-				command: "setSessionKey",
-				apiKey: apiKey
-			}).done(function(data) {
-				$("#currentApiKey").attr("data-api-key", apiKey);
-				$("#currentApiKey").text(data["data"]);
-			});
+			Cookies.set("key", apiKey);
+			location.reload();
 		});
 	</script>

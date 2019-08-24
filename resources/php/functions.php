@@ -389,7 +389,7 @@ function getSeasonDropdownData() {
 	
 	$defaultSocketTimeout = ini_get('default_socket_timeout');
 	ini_set('default_socket_timeout', 5);
-	$seasonJson = @file_get_contents("https://pokecal-dev.codearoundcorners.com/api.php?command=listPeriods&product=Video%20Game&onlyFormat");
+	$seasonJson = @file_get_contents("https://www.pokecal.com/api.php?command=listPeriods&product=Video%20Game&onlyFormat");
 	ini_set('default_socket_timeout', $defaultSocketTimeout);
 	
 	if ( $seasonJson == "" ) {
@@ -620,7 +620,7 @@ function getBaseUrl() {
 }
 
 function requireApiKey() {
-	if ( (isset($_SESSION['apiKey']) && $_SESSION['apiKey'] != "") ) {
+	if ( (isset($_COOKIE["key"]) && $_COOKIE["key"] != "") ) {
 		return true;
 	} else {
 		return false;
@@ -637,5 +637,10 @@ function showApiKeyError() {
     </div>
 <?
 }
+
+function sanitize($string) {
+	return preg_replace("/[^a-z0-9]/", "", strtolower(iconv('UTF-8', 'ASCII//TRANSLIT', $string)));
+}
+
 
 ?>

@@ -17,41 +17,24 @@
 
 	if ( isset($_GET["id"]) ) {
 		$eventId = $_GET["id"];
-		$resultJson = file_get_contents(getBaseUrl() . "api.php?command=eventResults&eventId=" . $eventId);
-		
-		if ( $resultJson != "" ) {
-			$resultData = json_decode($resultJson, true);
-			if ( ! isset($resultData["data"]["events"][$eventId]) ) {
-				$resultData = null;
-			}
-		} else {
-			$resultData = null;
-		}
-
-		if ( $resultData !== null ) {
-			$eventName = $resultData["data"]["events"][$eventId]["eventName"];
-			$eventCountryCode = strtolower($resultData["data"]["events"][$eventId]["countryCode"]);
-			$eventCountry = $resultData["data"]["events"][$eventId]["countryName"];
-			$eventHasCp = ($resultData["data"]["results"][$eventId][1]["points"]) > 0;
-		} else {
-			$eventName = "Unknown Event";
-			$eventCountryCode = "xxx";
-			$eventCountry = "";
-			$eventHasCp = false;
-		}
+		$countryData = json_decode(@file_get_contents(getBaseUrl() . "api/v1/countries"), true);
+		$resultData = json_decode(@file_get_contents(getBaseUrl() . "api/v1/events/" . $eventId . "/results"), true);	
+		$eventsData = json_decode(@file_get_contents(getBaseUrl() . "api/v1/events/" . $eventId), true);
+		$playersData = json_decode(@file_get_contents(getBaseUrl() . "api/v1/events/" . $eventId . "/players"), true);
+		$eventHasCp = ($eventsData["points"][1] > 0);
 	}
 ?>
 	<div class="grey-header container">
 		<h4 class="event-name">
-			 <img src="resources/images/flags/<? echo $eventCountryCode; ?>.png" alt="<? echo $eventCountry; ?>" class="icon" />&nbsp;
-			 <b><? echo $eventName; ?></b>
+			 <img src="<? echo $countryData[$eventsData["countryCode"]]["flagUrl"]; ?>" alt="<? echo $eventsData["country"]; ?>" class="icon" />&nbsp;
+			 <b><? echo $eventsData["name"]; ?></b>
 		 </h4>
 		<h6 class="event-name">
-			 <? echo date("F jS Y", strtotime($resultData["data"]["events"][$eventId]["date"])); ?>
-<?	if ( $resultData["data"]["events"][$eventId]["playerCount"] > 0 ) { ?>
-			 | <? echo $resultData["data"]["events"][$eventId]["playerCount"]; ?> Players
+			 <? echo date("F jS Y", strtotime($eventsData["date"])); ?>
+<?	if ( $eventsData["playerCount"] > 0 ) { ?>
+			 | <? echo $eventsData["playerCount"]; ?> Players
 <?	} ?>
-<?	if ( isset($_SESSION['apiUser']) && $_SESSION['apiUser'] != "" ) { ?>
+<?	if ( isset($_COOKIE["key"]) && $_COOKIE["key"] != "" ) { ?>
 			<span class="text-center">
 				| <a href="edit.php?eventId=<? echo $eventId; ?>">Edit This Event</a>
 				| <a href="#!" class="delete-event" onclick="javascript:deleteEvent();">Delete This Event</a>
@@ -76,44 +59,39 @@
 			  <tbody>
 
 <?	if ( $resultData !== null ) { ?>
-<?		foreach($resultData["data"]["results"][$eventId] as $position => $result) { ?>
-<?			if ( $result["points"] == 0 && $showOnlyCp ) continue; ?>
+<?		foreach($resultData as $resultId => $result) { ?>
 				<tr>
 					<td></td>
-					<td class="text-center"><? echo $position; ?></td>
-					<td class="text-center hide-detail-row" data-filter-value="<? echo $result["playerCountryName"]; ?>">
-<?			if ( $result["playerCountryCode"] != "" ) { ?>
-						<img src="resources/images/flags/<? echo strtolower($result["playerCountryCode"]); ?>.png" title="<? echo $result["playerCountryName"]; ?>" class="icon tttooltip"/>
-<?			} ?>
+					<td class="text-center"><? echo $result["position"]; ?></td>
+					<td class="text-center hide-detail-row" data-filter-value="<? echo $playersData[$result["playerId"]]["country"]; ?>">
+						<img src="<? echo $countryData[$playersData[$result["playerId"]]["countryCode"]]["flagUrl"]; ?>" title="<? echo $playersData[$result["playerId"]]["country"]; ?>" class="icon tttooltip"/>
 					</td>
 					<td class="text-center">
 					 	<a href="player.php?id=<? echo $result["playerId"]; ?>">
-						  	<span class="d-md-inline d-lg-none"><? echo getFlagEmoji(strtoupper($result["playerCountryCode"])) . " "; ?></span>
-						  	<? echo $result["playerName"]; ?>
+						  	<span class="d-md-inline d-lg-none"><? echo $countryData[$playersData[$result["playerId"]]["countryCode"]]["flagEmoji"] . " "; ?></span>
+						  	<? echo $playersData[$result["playerId"]]["name"]; ?>
 						</a>
 						<span class="d-sm-inline d-md-none">
 							<br />
 <?			foreach($result["team"] as $pokemon) { ?>
-							<span class="tttooltip d-md-inline d-lg-none <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
+							<span class="tttooltip d-md-inline d-lg-none <? echo $pokemon["class"]; ?>" title="<? echo $pokemon["name"]; ?>"></span>
 <?			} ?>
 						</span>
 					 </td>
 					<td class="text-center"><? echo $result["points"]; ?></td>
 <?			$pokemonSearch = ""; ?>
-<?			$showdownExport = ""; ?>
 <?			foreach($result["team"] as $pokemon) { ?>
-<?				$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
-<?				$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
+<?				$pokemonSearch .= $pokemon["name"] . " "; ?>
 <?			} ?>
 					<td class="text-center hide-detail-row team-column" data-filter-value="<? echo $pokemonSearch; ?>">
 <?			foreach($result["team"] as $pokemon) { ?>
-						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
+						<span class="tttooltip <? echo $pokemon["class"]; ?>" title="<? echo $pokemon["name"]; ?>"></span>
 <?			} ?>
 					</td>
 					<td class="text-center">
-						<a href="javascript:showExportBox('<? echo base64_encode($showdownExport); ?>');"><i class="fas fas-large fa-globe tttooltip" title="Export Pokemon Showdown"></i></a>
-<?			if ( $result["rentalLink"] != "" ) { ?>
-						&nbsp;&nbsp;<a href="<? echo $result["rentalLink"]; ?>" target="_new"><i class="fas fas-large fa-qrcode tttooltip" title="Export Rental Team"></i></a>
+						<a href="javascript:showExportBox(<? echo $resultId; ?>);"><i class="fas fas-large fa-globe tttooltip" title="Export Pokemon Showdown"></i></a>
+<?			if ( isset($result["rentalTeamUrl"])) { ?>
+						&nbsp;&nbsp;<a href="<? echo $result["rentalTeamUrl"]; ?>" target="_new"><i class="fas fas-large fa-qrcode tttooltip" title="Export Rental Team"></i></a>
 <?			} ?>
 					</td>
 				</tr>
@@ -146,9 +124,16 @@
 <?	include_once("resources/php/footer.php"); ?>
 
 	<script type="text/javascript">
-		function showExportBox(teamExport) {
-			$("#export").val(atob(teamExport));
-			$("#psExport").modal("show");
+		function showExportBox(resultId) {
+			$.get("<? echo getBaseUrl(); ?>api/v1/results/" + resultId).done(function(data) {
+				teamData = "";
+				$.each(data["team"], function(index, team) {
+					teamData += team["showdown"] + "\r\n";
+				});
+
+				$("#export").val(teamData);
+				$("#psExport").modal("show");
+			});
 		}
 		
 		$(document).ready(function() {
@@ -175,7 +160,7 @@
 		});
 		
 		function deleteEvent() {
-			if ( ! confirm("Are you sure you want to delete the event '<? echo $eventName; ?>'? All the standings and teams" +
+			if ( ! confirm("Are you sure you want to delete the event '<? echo $eventsData["name"]; ?>'? All the standings and teams" +
 				"for this event will be removed from the system!") ) {
 			
 				return;
@@ -185,12 +170,15 @@
 				return;
 			}
 			
-			$.get("api.php", {
-				command:	"deleteEvent",
-				eventId:	<? echo $eventId; ?>,
-				key: 		$("#currentApiKey").attr("data-api-key")
+			$.ajax({
+				url: "api/v1/events", 
+				type: "DELETE",
+				data: {
+					eventId:	<? echo $eventId; ?>,
+					key: 		$("#currentApiKey").attr("data-api-key")
+				}
 			}).done(function(data) {
-				alert("The event '<? echo $eventName; ?>' has been removed from the database.");
+				alert("The event '<? echo $eventsData["name"]; ?>' has been removed from the database.");
 				window.location = "index.php";
 			});
 		}

@@ -1,5 +1,3 @@
-<?	session_start(); ?>
-
 	<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
 		<a class="navbar-brand" href="index.php"><img src="resources/images/banner.png" class="small-icon" /></a>
 		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -14,7 +12,7 @@
 				<li class="nav-item<? echo ((basename($_SERVER['REQUEST_URI']) == "players.php") ? " active" : ""); ?>">
 					<a class="nav-link" href="players.php">Player List</a>
 				</li>
-<?	if ( isset($_SESSION['apiUser']) && $_SESSION['apiUser'] != "" ) { ?>
+<?	if ( isset($_COOKIE["key"]) && $_COOKIE["key"] != "" ) { ?>
 				<li class="nav-item dropdown">
 					<a class="nav-link dropdown-toggle" data-toggle="dropdown"
 						href="#" role="button" aria-haspopup="true" aria-expanded="false">

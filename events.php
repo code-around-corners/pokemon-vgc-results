@@ -10,7 +10,7 @@
 	include_once("resources/php/navigation.php");
 	include_once("resources/php/functions.php");
 
-	$eventJson = @file_get_contents(getBaseUrl() . "api.php?command=listEvents");
+	$eventJson = @file_get_contents(getBaseUrl() . "api/v1/events");
 
 	if ( $eventJson != "" ) {
 		$eventList = json_decode($eventJson, true);
@@ -43,26 +43,26 @@
 		    <tbody>
 
 <?	if ( $eventList !== null ) { ?>
-<?		foreach($eventList["data"] as $eventId => $event) { ?>
+<?		foreach($eventList as $event) { ?>
 				<tr>
 					<td></td>
                 	<td class="text-center" data-sort-value="<? echo $event["date"]; ?>" data-filter-value="<? echo str_replace("-", "", $event["date"]); ?>">
 	                	<? echo date("F jS Y", strtotime($event["date"])); ?>
 	                </td>
-                	<td class="text-center hide-detail-row" data-filter-value="<? echo $event["countryName"]; ?>">
+                	<td class="text-center hide-detail-row" data-filter-value="<? echo $event["country"]; ?>">
 <?			if ( $event["countryCode"] != "" ) { ?>
-                		<img src="resources/images/flags/<? echo strtolower($event["countryCode"]); ?>.png" title="<? echo $event["countryName"]; ?>" class="icon tttooltip" />
+                		<img src="resources/images/flags/<? echo strtolower($event["countryCode"]); ?>.png" title="<? echo $event["country"]; ?>" class="icon tttooltip" />
 <?			} ?>
                 	</td>
-                	<td class="text-center" data-sort-value="<? echo $event["eventName"]; ?>">
+                	<td class="text-center" data-sort-value="<? echo $event["name"]; ?>">
 	                	<span class="d-sm-inline d-md-none"><? echo getFlagEmoji(strtoupper($event["countryCode"])) . " "; ?></span>
-	                	<a href="standings.php?id=<? echo $eventId; ?>"><? echo $event["eventName"]; ?></a>
+	                	<a href="standings.php?id=<? echo $event["id"]; ?>"><? echo $event["name"]; ?></a>
 	                </td>
                 	<td class="text-center"><? echo $event["season"]; ?></td>
                 	<td class="text-center"><? echo ($event["playerCount"] == 0 ? "Unknown" : $event["playerCount"]); ?></td>
-                	<td class="text-center" data-sort-value="<? echo $event["eventWinner"]; ?>">
-	                	<span><? echo getFlagEmoji(strtoupper($event["eventWinnerCountryCode"])) . " "; ?></span>
-	                	<a href="player.php?id=<? echo $event["eventWinnerId"]; ?>"><? echo $event["eventWinner"]; ?></a>
+                	<td class="text-center" data-sort-value="<? echo $event["winner"]["name"]; ?>">
+	                	<span><? echo getFlagEmoji(strtoupper($event["winner"]["countryCode"])) . " "; ?></span>
+	                	<a href="player.php?id=<? echo $event["winner"]["id"]; ?>"><? echo $event["winner"]["name"]; ?></a>
 	                </td>
 				</tr>
 <?		} ?>

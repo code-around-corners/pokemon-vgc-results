@@ -10,7 +10,8 @@
 	include_once("resources/php/navigation.php");
 	include_once("resources/php/functions.php");
 
-	$playerJson = @file_get_contents(getBaseUrl() . "api.php?command=listPlayers");
+	$countryList = json_decode(file_get_contents(getBaseUrl() . "api/v1/countries"), true);
+	$playerJson = @file_get_contents(getBaseUrl() . "api/v1/players?format=table");
 	
 	if ( $playerJson !== "" ) {
 		$playerList = json_decode($playerJson, true);
@@ -42,62 +43,58 @@
 		    <tbody>
 
 <?	if ( $playerList !== null ) { ?>
-<?		foreach($playerList["data"] as $playerId => $player) { ?>
+<?		foreach($playerList as $playerId => $player) { ?>
 				<tr>
 					<td></td>
-                	<td class="text-center hide-detail-row" data-filter-value="<? echo $player["countryName"]; ?>">
-<?			if ( $player["countryCode"] != "" ) { ?>
-                		<img src="resources/images/flags/<? echo strtolower($player["countryCode"]); ?>.png" title="<? echo $player["countryName"]; ?>" class="icon tttooltip" />
-<?			} ?>
+                	<td class="text-center hide-detail-row" data-filter-value="<? echo $player["country"]; ?>">
+                		<img src="<? echo $countryList[$player["countryCode"]]["flagUrl"]; ?>" title="<? echo $player["country"]; ?>" class="icon tttooltip" />
                 	</td>
-                	<td class="text-center" data-sort-value="<? echo $player["playerName"]; ?>">
-	                	<span class="d-sm-inline d-md-none"><? echo getFlagEmoji(strtoupper($player["countryCode"])) . " "; ?></span>
-	                	<a href="player.php?id=<? echo $playerId; ?>"><? echo $player["playerName"]; ?></a>
+                	<td class="text-center" data-sort-value="<? echo $player["name"]; ?>">
+	                	<span class="d-sm-inline d-md-none"><? echo $countryList[$player["countryCode"]]["flagEmoji"] . " "; ?></span>
+	                	<a href="player.php?id=<? echo $playerId; ?>"><? echo $player["name"]; ?></a>
 	                </td>
-<?			if ( $player["lastEventDate"] != null ) { ?>
-                	<td class="text-center" data-sort-value="<? echo $player["lastEventDate"]; ?>">
-	                	<a href="standings.php?id=<? echo $player["lastEventId"]; ?>">
-		                	<? echo date("F jS Y", strtotime($player["lastEventDate"])); ?>
+<?			if ( isset($player["lastEvent"]) ) { ?>	                
+                	<td class="text-center" data-sort-value="<? echo $player["lastEvent"]["date"]; ?>">
+	                	<a href="standings.php?id=<? echo $player["lastEvent"]["id"]; ?>">
+		                	<? echo date("F jS Y", strtotime($player["lastEvent"]["date"])); ?>
 	                	</a>
 	                </td>
 <?				$pokemonSearch = ""; ?>
-<?				$showdownExport = ""; ?>
-<?				foreach($player["lastTeam"] as $pokemon) { ?>
-<?					$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
-<?					$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
+<?				foreach($player["lastEvent"]["team"] as $pokemon) { ?>
+<?					$pokemonSearch .= $pokemon["name"] . " "; ?>
 <?				} ?>
 					<td class="text-center team-column" data-filter-value="<? echo $pokemonSearch; ?>">
 <?				$pokemonCount = 0; ?>
-<?				foreach($player["lastTeam"] as $pokemon) { ?>
+<?				foreach($player["lastEvent"]["team"] as $pokemon) { ?>
 <?					$pokemonCount++; ?>
-						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
+						<span class="tttooltip <? echo $pokemon["class"]; ?>" title="<? echo $pokemon["name"]; ?>"></span>
 <?					if ( $pokemonCount == 3 ) { ?>
 						<br class="phone-line-break" />
 <?					} ?>
 <?				} ?>
 					</td>
 <?			} else { ?>
-					<td class="text-center" data-sort-value=""></td>
-					<td class="text-center" data-sort-value=""></td>
+					<td></td>
+					<td></td>
 <?			} ?>
                 	<td class="text-center">
-<?			if ( isset($player["socialMedia"]["facebook"]) ) { ?>	            
-			            <a href="http://www.facebook.com/<? echo $player["socialMedia"]["facebook"]; ?>" target="_blank">
+<?			if ( isset($player["social"]["facebook"]) ) { ?>	            
+			            <a href="http://www.facebook.com/<? echo $player["social"]["facebook"]; ?>" target="_blank">
 				            <img src="resources/images/social/facebook.png" alt="facebook" class="small-icon" />
 				        </a>
 <?			} ?>
-<?			if ( isset($player["socialMedia"]["twitter"]) ) { ?>	            
-			            <a href="http://www.twitter.com/<? echo $player["socialMedia"]["twitter"]; ?>" target="_blank">
+<?			if ( isset($player["social"]["twitter"]) ) { ?>	            
+			            <a href="http://www.twitter.com/<? echo $player["social"]["twitter"]; ?>" target="_blank">
 				            <img src="resources/images/social/twitter.png" alt="twitter" class="small-icon" />
 				        </a>
 <?			} ?>
-<?			if ( isset($player["socialMedia"]["youtube"]) ) { ?>	            
-			            <a href="http://www.youtube.com/user/<? echo $player["socialMedia"]["youtube"]; ?>" target="_blank">
+<?			if ( isset($player["social"]["youtube"]) ) { ?>	            
+			            <a href="http://www.youtube.com/user/<? echo $player["social"]["youtube"]; ?>" target="_blank">
 				            <img src="resources/images/social/youtube.png" alt="youtube" class="small-icon" />
 				        </a>
 <?			} ?>
-<?		if ( isset($player["socialMedia"]["twitch"]) ) { ?>	            
-			            <a href="http://www.twitch.com/u/<? echo $player["socialMedia"]["twitch"]; ?>" target="_blank">
+<?			if ( isset($player["social"]["twitch"]) ) { ?>	            
+			            <a href="http://www.twitch.com/u/<? echo $player["social"]["twitch"]; ?>" target="_blank">
 				            <img src="resources/images/social/twitch.png" alt="twitch" class="small-icon" />
 				        </a>
 <?			} ?>

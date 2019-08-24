@@ -10,7 +10,7 @@
 	include_once("resources/php/functions.php");
 	include_once("resources/php/navigation.php");
 
-	$resultJson = @file_get_contents(getBaseUrl() . "api.php?command=search&search=" . urlencode($_POST["search-filter"]));
+	$resultJson = @file_get_contents(getBaseUrl() . "api/v1/results?format=full&q=" . urlencode($_POST["search-filter"]));
 	
 	if ( $resultJson != "" ) {
 		$resultData = json_decode($resultJson, true);
@@ -43,35 +43,34 @@
 			<tbody>
 
 <?	if ( $resultData !== null ) { ?>
-<?		foreach($resultData["data"] as $resultId => $result) { ?>
+<?		foreach($resultData as $resultId => $result) { ?>
 				<tr>
 					<td></td>
-					<td class="text-center"><? echo $result["eventDate"]; ?></td>
+					<td class="text-center"><? echo $result["event"]["date"]; ?></td>
 					<td class="text-center">
-					 	<a href="standings.php?id=<? echo $result["eventId"]; ?>">
-							<? echo getFlagEmoji(strtoupper($result["eventCountryCode"])) . " " . $result["eventName"]; ?>
+					 	<a href="standings.php?id=<? echo $result["event"]["id"]; ?>">
+							<? echo $result["event"]["flagEmoji"] . " " . $result["event"]["name"]; ?>
 					 	</a>
 					</td>
 					<td class="text-center">
-					 	<a href="player.php?id=<? echo $result["playerId"]; ?>">
-						  	<? echo getFlagEmoji(strtoupper($result["playerCountryCode"])) . " " . $result["playerName"]; ?>
+					 	<a href="player.php?id=<? echo $result["player"]["id"]; ?>">
+						  	<? echo $result["player"]["flagEmoji"] . " " . $result["player"]["name"]; ?>
 						</a>
 					</td>
 <?			$pokemonSearch = ""; ?>
 <?			$showdownExport = ""; ?>
 <?			foreach($result["team"] as $pokemon) { ?>
-<?				$pokemonSearch .= decodePokemonLabel($pokemon) . " "; ?>
-<?				$showdownExport .= encodePokemonShowdown($pokemon) . "\n"; ?>
+<?				$pokemonSearch .= $pokemon["pokemon"] . " "; ?>
 <?			} ?>
 					<td class="text-center hide-detail-row team-column" data-filter-value="<? echo $pokemonSearch; ?>">
 <?			foreach($result["team"] as $pokemon) { ?>
-						<span class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></span>
+						<span class="tttooltip <? echo $pokemon["class"]; ?>" title="<? echo $pokemon["name"]; ?>"></span>
 <?			} ?>
 					</td>
 					<td class="text-center">
-						<a href="javascript:showExportBox('<? echo base64_encode($showdownExport); ?>');"><i class="fas fas-large fa-globe tttooltip" title="Export Pokemon Showdown"></i></a>
-<?			if ( $result["rentalLink"] != "" ) { ?>
-						&nbsp;&nbsp;<a href="<? echo $result["rentalLink"]; ?>" target="_new"><i class="fas fas-large fa-qrcode tttooltip" title="Export Rental Team"></i></a>
+						<a href="javascript:showExportBox('<? echo $resultId ?>');"><i class="fas fas-large fa-globe tttooltip" title="Export Pokemon Showdown"></i></a>
+<?			if ( isset($result["rentalTeamUrl"]) ) { ?>
+						&nbsp;&nbsp;<a href="<? echo $result["rentalTeamUrl"]; ?>" target="_new"><i class="fas fas-large fa-qrcode tttooltip" title="Export Rental Team"></i></a>
 <?			} ?>
 					</td>
 				</tr>
@@ -104,9 +103,16 @@
 <?	include_once("resources/php/footer.php"); ?>
 
 	<script type="text/javascript">
-		function showExportBox(teamExport) {
-			$("#export").val(atob(teamExport));
-			$("#psExport").modal("show");
+		function showExportBox(resultId) {
+			$.get("<? echo getBaseUrl(); ?>api/v1/results/" + resultId).done(function(data) {
+				teamData = "";
+				$.each(data["team"], function(index, team) {
+					teamData += team["showdown"] + "\r\n";
+				});
+
+				$("#export").val(teamData);
+				$("#psExport").modal("show");
+			});
 		}
 		
 		$(document).ready(function() {

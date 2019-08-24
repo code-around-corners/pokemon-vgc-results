@@ -23,32 +23,27 @@
 <?	
 	} else {
 		$eventId = $_GET["eventId"];
-		$countryList = json_decode(file_get_contents(getBaseUrl() . "api.php?command=listCountries"), true);
-		$resultData = json_decode(file_get_contents(getBaseUrl() . "api.php?command=eventResults&eventId=" . $eventId), true);
+		$countryList = json_decode(file_get_contents(getBaseUrl() . "api/v1/countries"), true);
+		$countryDropdownList = json_decode(file_get_contents(getBaseUrl() . "api/v1/countries?format=dropdown"), true);
+		$eventData = json_decode(file_get_contents(getBaseUrl() . "api/v1/events/" . $eventId), true);
+		$playerData = json_decode(file_get_contents(getBaseUrl() . "api/v1/events/" . $eventId . "/players"), true);
+		$resultData = json_decode(file_get_contents(getBaseUrl() . "api/v1/events/" . $eventId . "/results?format=full"), true);
 
-		if ( $resultData !== null ) {
-			$eventName = $resultData["data"]["events"][$eventId]["eventName"];
-			$eventCountryCode = strtolower($resultData["data"]["events"][$eventId]["countryCode"]);
-			$eventCountry = $resultData["data"]["events"][$eventId]["countryName"];
-			$eventHasCp = ($resultData["data"]["results"][$eventId][1]["points"]) > 0;
-			$eventTypeData = json_decode(file_get_contents(getBaseUrl() . "api.php?command=listEventTypes&date=" . date("Y-m-d", strtotime($resultData["data"]["events"][$eventId]["date"]))), true);
-		} else {
-			$eventName = "Unknown Event";
-			$eventCountryCode = "xxx";
-			$eventCountry = "";
-			$eventHasCp = false;
-			$eventTypeData = array("data" => array());
-		}
+		$eventName = $eventData["name"];
+		$eventCountryCode = $eventData["countryCode"];
+		$eventCountry = $eventData["country"];
+		$eventHasCp = ($eventData["points"][0] > 0);
+		$eventTypeData = json_decode(file_get_contents(getBaseUrl() . "api/v1/event-types?format=dropdown&date=" . date("Y-m-d", strtotime($eventData["date"]))), true);
 ?>
 	<div class="grey-header container">
 		<h4 class="event-name">
-			 <img src="resources/images/flags/<? echo $eventCountryCode; ?>.png" alt="<? echo $eventCountry; ?>" class="icon" />&nbsp;
+			 <img src="<? echo $countryList[$eventCountryCode]["flagUrl"]; ?>" alt="<? echo $eventCountry; ?>" class="icon" />&nbsp;
 			 <b><? echo $eventName; ?></b>
 		 </h4>
 		<h6 class="event-name">
-			 <? echo date("F jS Y", strtotime($resultData["data"]["events"][$eventId]["date"])); ?>
-<?		if ( $resultData["data"]["events"][$eventId]["playerCount"] > 0 ) { ?>
-			 | <? echo $resultData["data"]["events"][$eventId]["playerCount"]; ?> Players
+			 <? echo date("F jS Y", strtotime($eventData["date"])); ?>
+<?		if ( $eventData["playerCount"] > 0 ) { ?>
+			 | <? echo $eventData["playerCount"]; ?> Players
 <?		} ?>
 			<span class="text-center">
 				| <a href="#!" data-toggle="modal" data-target="#eventCreation">Edit Event Details</a>
@@ -65,24 +60,26 @@
 			    <th class="text-center" width=60%>Team</th>
 		    </thead>
 		    <tbody>
-<?		foreach($resultData["data"]["results"][$eventId] as $position => $record) { ?>
+<?		foreach($resultData as $resultId => $record) { ?>
 				<tr data-position="<? echo $record["position"]; ?>" data-event-id="<? echo $eventId; ?>">
 					<td class="text-center"><? echo $record["position"]; ?></td>
 					<td class="text-center">
 						<select class="w-100 player-select-box">
-							<option value="<? echo $record["playerId"]; ?>"><? echo $record["playerName"]; ?> [<? echo $record["playerCountryName"]; ?>] (ID: <? echo $record["playerId"]; ?>)</option>
+							<option value="<? echo $record["playerId"]; ?>">
+								<? echo $record["player"]["flagEmoji"]; ?>
+								<? echo $record["player"]["name"]; ?> (ID: <? echo $record["player"]["id"]; ?>)
+							</option>
 						</select>
 						<hr />
-						<button type="button" class="validate-team">Validate Team</button>
-						<button type="button" class="save-changes" disabled="true">Save Changes</button>
+						<button type="button" class="save-changes" data-result-id="<? echo $resultId; ?>">Save Changes</button>
 					</td>
 					<td class="text-center">
 						<div class="row w-100">
 <?		foreach($record["team"] as $pokemon) { ?>
 							<div class="col-6 col-sm-4 text-center">
-								<div class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></div>
+								<div class="tttooltip <? echo $pokemon["class"] ?>" title="<? echo $pokemon["name"]; ?>"></div>
 								<br />
-								<textarea class="w-100 validate-pokemon" rows=5><? echo encodePokemonShowdown($pokemon); ?></textarea>
+								<textarea class="w-100 validate-pokemon" rows=5><? echo $pokemon["showdown"]; ?></textarea>
 							</div>
 <?		} ?>
 						</div>
@@ -117,8 +114,8 @@
 							<div class="col-8">
 								<select class="w-100 form-control" id="eventCountry">
 									<option value=""></option>
-	<?	foreach($countryList["data"] as $countryCode => $countryName) { ?>
-									<option value="<? echo $countryCode; ?>"<? echo (strtolower($countryCode) == strtolower($eventCountryCode) ? " selected" : ""); ?>><? echo $countryName; ?></option>
+	<?	foreach($countryDropdownList["results"] as $country) { ?>
+									<option value="<? echo $country["id"]; ?>"<? echo (strtolower($country["id"]) == strtolower($eventData["countryCode"]) ? " selected" : ""); ?>><? echo $country["text"]; ?></option>
 	<?	} ?>
 								</select>
 							</div>
@@ -127,7 +124,7 @@
 						<div class="row pb-1">
 							<div class="col-4">Event Date</div>
 							<div class="col-8">
-								<input class="form-control" type="text" id="eventDate" onchange="javascript:updateEventTypes();" value="<? echo date("Y-m-d", strtotime($resultData["data"]["events"][$eventId]["date"])); ?>" />
+								<input class="form-control" type="text" id="eventDate" onchange="javascript:updateEventTypes();" value="<? echo date("Y-m-d", strtotime($eventData["date"])); ?>" />
 							</div>
 						</div>
 
@@ -135,8 +132,8 @@
 							<div class="col-4">Event Type</div>
 							<div class="col-8">
 								<select class="w-100 form-control" id="eventType">
-<?		foreach($eventTypeData["data"] as $eventTypeId => $eventType) { ?>
-									<option value="<? echo $eventTypeId; ?>"<? echo ($eventTypeId == $resultData["data"]["events"][$eventId]["eventTypeId"] ? " selected" : ""); ?>><? echo $eventType; ?></option>
+<?		foreach($eventTypeData["results"] as $eventType) { ?>
+									<option value="<? echo $eventType["id"]; ?>"<? echo ($eventType["id"] == $eventData["eventTypeId"] ? " selected" : ""); ?>><? echo $eventType["text"]; ?></option>
 <?		} ?>
 								</select>
 							</div>
@@ -145,7 +142,7 @@
 						<div class="row pb-1">
 							<div class="col-4">Player Count</div>
 							<div class="col-8">
-								<input class="form-control" type="number" id="playerCount" value="<? echo $resultData["data"]["events"][$eventId]["playerCount"]; ?>" />
+								<input class="form-control" type="number" id="playerCount" value="<? echo $eventData["playerCount"]; ?>" />
 							</div>
 							
 							<p class="pt-1">
@@ -179,7 +176,7 @@
 					'ready.ft.table': function(e, ft) {
 				        $(".player-select-box").select2({
 							ajax: {
-								url: 'api.php?command=listPlayersOnly',
+								url: 'api/v1/players?format=dropdown',
 								dataType: 'json'
 							},
 							width: "100%"
@@ -202,28 +199,46 @@
 							position = row.attr("data-position");
 							eventId = row.attr("data-event-id");
 							playerId = row.find("td").eq(1).find("select").eq(0).val();
+							resultId = $(this).attr("data-result-id");
 							
-							row.find(".save-changes").attr("disabled", true);
-		
 							pokemon = [];
 							for ( var index = 0; index < 6; index++ ) {
 								pokemon[index] = btoa(row.find("td").eq(2).find("textarea").eq(index).val());
 							}
 							
-							$.get("api.php", {
-								command: "updateResult",
-								eventId: eventId,
-								position: position,
-								playerId: playerId,
-								pokemon1: pokemon[0],
-								pokemon2: pokemon[1],
-								pokemon3: pokemon[2],
-								pokemon4: pokemon[3],
-								pokemon5: pokemon[4],
-								pokemon6: pokemon[5],
-								key: $("#currentApiKey").attr("data-api-key")
+							$.ajax({
+								url: "api/v1/results",
+								type: "PUT",
+								contentType: 'application/json',
+								data: {
+									resultId: resultId,
+									eventId: eventId,
+									position: position,
+									playerId: playerId,
+									pokemon1: pokemon[0],
+									pokemon2: pokemon[1],
+									pokemon3: pokemon[2],
+									pokemon4: pokemon[3],
+									pokemon5: pokemon[4],
+									pokemon6: pokemon[5],
+									key: $("#currentApiKey").attr("data-api-key")
+								}
 							}).done(function(data) {
+								for ( index = 0; index < 6; index++ ) {
+									if ( data["team"][index]["valid"] ) {
+										row.find("td").eq(2).find("textarea").eq(index).val(data["team"][index]["showdown"]);
+									} else {
+										row.find(".save-changes").attr("disabled", true);
+									}
+									
+									row.find("td").eq(2).find(".pkspr").eq(index).attr("class", data["team"][index]["class"]);
+									row.find("td").eq(2).find(".pkspr").eq(index).empty();
+								}
+								
+								PkSpr.process_dom();
 								alert("Changes have been saved to the event!");
+							}).fail(function(data, textStatus, xhr) {
+								alert("Validation failed!");
 							});
 						});
 					}
@@ -231,36 +246,15 @@
             });
 		});
 		
-		function validatePokemon(row, index) {
-			$.get("api.php", {
-				command: "validateShowdown",
-				pokemon: pokemon[index]
-			}).done(function(data) {
-				if ( data["status"] == 200 ) {
-					if ( data["data"]["valid"] ) {
-						row.find("td").eq(2).find("textarea").eq(index).val(data["showdown"]);
-					} else {
-						row.find(".save-changes").attr("disabled", true);
-					}
-					
-					row.find("td").eq(2).find(".pkspr").eq(index).attr("class", data["class"]);
-					row.find("td").eq(2).find(".pkspr").eq(index).empty();
-					PkSpr.process_dom();
-				} else {
-					row.find(".save-changes").attr("disabled", true);
-				}
-			});
-		}
-
 		function updateEventTypes() {
-			$.get("api.php", {
-				command: "listEventTypes",
+			$.get("api/v1/event-types", {
+				format: "dropdown",
 				date: $("#eventDate").val()
 			}).done(function(data) {
 				$("#eventType").find("option").remove();
 				
-				$.each(data["data"], function(eventTypeId, eventType) {
-					$("#eventType").append("<option value='" + eventTypeId + "'>" + eventType + "</option>");
+				$.each(data["data"], function(index, eventType) {
+					$("#eventType").append("<option value='" + eventType["id"] + "'>" + eventType["text"] + "</option>");
 				});
 			});
 		}
@@ -278,18 +272,24 @@
 				return;
 			}
 			
-			$.get("api.php", {
-				command: "updateEvent",
-				eventId: eventId,
-				eventName: eventName,
-				countryCode: countryCode,
-				eventDate: eventDate,
-				eventTypeId: eventTypeId,
-				playerCount: playerCount,
-				key: $("#currentApiKey").attr("data-api-key")
+			$.ajax({
+				url: "api/v1/events", 
+				type: "PUT",
+				contentType: 'application/json',
+				data: {
+					eventId: eventId,
+					eventName: eventName,
+					countryCode: countryCode,
+					eventDate: eventDate,
+					eventTypeId: eventTypeId,
+					playerCount: playerCount,
+					key: $("#currentApiKey").attr("data-api-key")
+				}
 			}).done(function(data) {
 				alert("Event details have been updated!");
 				location.reload();
+			}).fail(function(data, textStatus, xhr) {
+				alert("Validation error!");
 			});
 		}
 	</script>

@@ -96,7 +96,7 @@
 		$(document).ready(function() {
 	        $(".player-select-box").select2({
 				ajax: {
-					url: 'api.php?command=listPlayersOnly',
+					url: 'api/v1/players?format=dropdown',
 					dataType: 'json'
 				},
 				width: "100%",
@@ -106,18 +106,22 @@
 		
 		function getPlayerData(playerId) {
 			selectedPlayer = $("#player" + playerId).val();
-			$.get("api.php", {
-				command: "playerInfo",
-				playerId: selectedPlayer
-			}).done(function(data) {
-				$("#player" + playerId + "name").text(data["data"]["player"]["playerName"]);
-				$("#player" + playerId + "country").text(data["data"]["player"]["countryEmoji"] + " " + data["data"]["player"]["countryName"]);
-				$("#player" + playerId + "lastEvent").text(data["data"]["player"]["lastEventDate"]);
+			$.get(
+				"api/v1/players/" + selectedPlayer
+			).done(function(data) {
+				$("#player" + playerId + "name").text(data["name"]);
+				$("#player" + playerId + "country").text(data["flagEmoji"] + " " + data["country"]);
 				
-				if ( data["data"]["player"]["socialMedia"]["twitter"] == undefined ) {
+				if ( data["lastEvent"] == undefined ) {
+					$("#player" + playerId + "lastEvent").text("");
+				} else {
+					$("#player" + playerId + "lastEvent").text(data["lastEvent"]["date"]);
+				}
+				
+				if ( data["social"]["twitter"] == undefined ) {
 					$("#player" + playerId + "twitter").text("");
 				} else {
-					twitter = data["data"]["player"]["socialMedia"]["twitter"];
+					twitter = data["social"]["twitter"];
 					$("#player" + playerId + "twitter").html("<a href='https://www.twitter.com/" + twitter + "'>" + twitter + "</a>");
 				}
 			});
@@ -144,13 +148,15 @@
 				return;
 			}
 			
-			$.get("api.php", {
-				command: "mergePlayers",
-				oldPlayerId: player1,
-				newPlayerId: player2,
-				key: $("#currentApiKey").attr("data-api-key")
+			$.ajax({
+				url: "api/v1/players/" + player1,
+				type: "PUT",
+				data: {
+					mergeId: player2,
+					key: $("#currentApiKey").attr("data-api-key")
+				}
 			}).done(function(data) {
-				alert("Player records have been merged using the ID " + data["data"]);
+				alert("Player records have been merged using the ID " + data["id"]);
 				location.reload();
 			});
 		}

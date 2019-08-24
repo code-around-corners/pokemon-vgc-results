@@ -279,7 +279,7 @@ const VALID_COUNTRY_CODES = array(
 	"YEM" => "Yemen",
 	"ZMB" => "Zambia",
 	"ZWE" => "Zimbabwe",
-	"XXX" => "",
+	"XXX" => "Not Specified",
 );
 	
 ?>
