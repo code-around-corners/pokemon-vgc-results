@@ -96,17 +96,6 @@ function addQueryParameter(&$query, $key, $value) {
 	$query[$key][count($query[$key])] = $value;
 }
 
-function openDatabase() {
-	$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-	mysqli_set_charset($mysqli, "utf8");
-	
-	return $mysqli;
-}
-
-function closeDatabase($mysqli) {
-	$mysqli->close();
-}
-
 function apiResourceEvents($method, $request, $query) {
 	if ( ! isset($request[1]) ) {
 		switch ($method) {
@@ -164,7 +153,7 @@ function apiResourceEvents($method, $request, $query) {
 }
 
 function getEvents($query, $detail) {	
-	$mysqli = openDatabase();
+	global $mysqli;
 	
 	$sql = "
 	Select
@@ -261,13 +250,11 @@ function getEvents($query, $detail) {
 	}
 	
 	$events->free();
-	closeDatabase($mysqli);
-
 	return $eventJson;
 }
 
 function addEvent() {
-	$mysqli = openDatabase();
+	global $mysqli;
 	
 	if ( ! isset($_POST["key"]) || ! isset(API_KEY[$_POST["key"]]) ) {
 		apiReturnCode(403);
@@ -299,8 +286,6 @@ function addEvent() {
 	$stmt->execute();
 	$eventId = $stmt->insert_id;
 	$stmt->close();
-	
-	closeDatabase($mysqli);
 	
 	return array(
 		"id"	=> $eventId
@@ -338,14 +323,12 @@ function updateEvent() {
 	if ( $playerCount == "" ) $playerCount = 0;
 	
 	$sql = "Update events Set eventName = ?, country = ?, date = ?, eventTypeId = ?, playerCount = ?, api = ? Where id = ?;";
-	$mysqli = openDatabase();
+	global $mysqli;
 	
 	$stmt = $mysqli->prepare($sql);
 	$stmt->bind_param("sssiisi", $eventName, $countryCode, $eventDate, $eventTypeId, $playerCount, $apiKey, $eventId);
 	$stmt->execute();
 	$stmt->close();
-	
-	closeDatabase($mysqli);
 	
 	return array();
 }
@@ -366,7 +349,7 @@ function deleteEvent() {
 		return;
 	}
 		
-	$mysqli = openDatabase();
+	global $mysqli;
 	
 	$sql = "Delete From results Where eventId = ?";
 	$stmt = $mysqli->prepare($sql);
@@ -379,8 +362,6 @@ function deleteEvent() {
 	$stmt->bind_param("i", $eventId);
 	$stmt->execute();
 	$stmt->close();
-	
-	closeDatabase($mysqli);
 	
 	return array();
 }
@@ -437,7 +418,7 @@ function apiResourcePlayers($method, $request, $query) {
 }
 
 function getPlayers($query, $detail) {	
-	$mysqli = openDatabase();
+	global $mysqli;
 	
 	$sql = "
 	Select
@@ -554,50 +535,45 @@ function getPlayers($query, $detail) {
 					On r.eventId = e.id
 				Inner Join eventTypes et
 					On e.eventTypeId = et.id
-		Where
-			r.playerId In (-1";
+		Order By
+			e.date Desc";		
 		
-		foreach($playerJson as $singlePlayerJson) {
-			$sql .= ", " . $mysqli->real_escape_string($singlePlayerJson["id"]);
-		}
-		
-		$sql .= ") Order By e.date Desc";		
 		$players = $mysqli->query($sql);
 
 		while ( $player = $players->fetch_assoc() ) {
 			$playerId = $player["playerId"];
 			
-			if ( ! isset($playerJson[$playerId]["lastEvent"]) ) {
-				$team = sortPokemonTeam(json_decode($player["lastUsedTeam"], true));
-				
-				$playerJson[$playerId]["lastEvent"] = array(
-					"id"	=> (int)$player["lastEventId"],
-					"name"	=> $player["lastEventName"],
-					"date"	=> $player["lastEventDate"],
-					"team"	=> array()
-				);
-				
-				foreach($team as $pokemon) {
-					$pokemonData = decodePokemonShowdown(encodePokemonShowdown($pokemon));
-					$pokemonName = preg_replace("/[^a-z0-9\%]/", "", strtolower($pokemonData["pokemon"]));
+			if ( isset($playerJson[$playerId]) ) {
+				if ( ! isset($playerJson[$playerId]["lastEvent"]) ) {
+					$team = sortPokemonTeam(json_decode($player["lastUsedTeam"], true));
 					
-					if ( isset(POKEMON_NAME_TO_ID[$pokemonName]) ) {
-						$pokemonId = POKEMON_NAME_TO_ID[$pokemonName];
-					} else {
-						$pokemonId = -1;
-					}
-					
-					$playerJson[$playerId]["lastEvent"]["team"][count($playerJson[$playerId]["lastEvent"]["team"])] = array(
-						"id"		=> $pokemonId,
-						"name"		=> decodePokemonLabel($pokemonData),
-						"class"		=> getSpriteClass($pokemonData)
+					$playerJson[$playerId]["lastEvent"] = array(
+						"id"	=> (int)$player["lastEventId"],
+						"name"	=> $player["lastEventName"],
+						"date"	=> $player["lastEventDate"],
+						"team"	=> array()
 					);
+					
+					foreach($team as $pokemon) {
+						$pokemonData = decodePokemonShowdown(encodePokemonShowdown($pokemon));
+						$pokemonName = preg_replace("/[^a-z0-9\%]/", "", strtolower($pokemonData["pokemon"]));
+						
+						if ( isset(POKEMON_NAME_TO_ID[$pokemonName]) ) {
+							$pokemonId = POKEMON_NAME_TO_ID[$pokemonName];
+						} else {
+							$pokemonId = -1;
+						}
+						
+						$playerJson[$playerId]["lastEvent"]["team"][count($playerJson[$playerId]["lastEvent"]["team"])] = array(
+							"id"		=> $pokemonId,
+							"name"		=> decodePokemonLabel($pokemonData),
+							"class"		=> getSpriteClass($pokemonData)
+						);
+					}
 				}
 			}
 		}
 	}
-	
-	closeDatabase($mysqli);
 	
 	if ( $query["format"] == "dropdown" ) {
 		return array("results" => $playerJson);
@@ -609,7 +585,7 @@ function getPlayers($query, $detail) {
 }
 
 function addPlayer() {
-	$mysqli = openDatabase();
+	global $mysqli;
 	
 	if ( ! isset($_POST["key"]) || ! isset(API_KEY[$_POST["key"]]) ) {
 		apiReturnCode(403);
@@ -642,8 +618,6 @@ function addPlayer() {
 	$playerId = $stmt->insert_id;
 	$stmt->close();
 	
-	closeDatabase($mysqli);
-	
 	return array(
 		"id" => $playerId
 	);
@@ -651,6 +625,7 @@ function addPlayer() {
 
 function updatePlayer($playerId) {
 	global $_PUT;
+	global $mysqli;
 	
 	if ( ! isset($_PUT["key"]) || ! isset(API_KEY[$_PUT["key"]]) ) {
 		apiReturnCode(403);
@@ -667,8 +642,6 @@ function updatePlayer($playerId) {
 		}
 		
 		$sql = "Select p.id, p.twitter From players p Where id = ? And active = 1";
-	
-		$mysqli = openDatabase();
 	
 		$stmt = $mysqli->prepare($sql);
 		$stmt->bind_param("i", $playerId);
@@ -716,8 +689,6 @@ function updatePlayer($playerId) {
 		$stmt->execute();
 		$stmt->close();
 	
-		closeDatabase($mysqli);
-	
 		return array(
 			"id"	=> $mergedPlayerId
 		);	
@@ -742,16 +713,12 @@ function updatePlayer($playerId) {
 			return;
 		}
 		
-		$mysqli = openDatabase();
-		
 		$stmt = $mysqli->prepare("Update players Set playerName = ?, country = ?, twitter = ?, youtube = ?, facebook = ?, " .
 			"twitch = ?, api = ? Where id = ?;");
 		$stmt->bind_param("sssssssi", $playerName, $countryCode, $twitter, $youtube, $facebook, $twitch, $apiKey, $playerId);
 		$stmt->execute();
 		$stmt->close();
 		
-		closeDatabase($mysqli);
-	
 		return array();
 	}
 }
@@ -804,7 +771,7 @@ function apiResourceResults($method, $request, $query) {
 }
 
 function getResults($query, $detail) {	
-	$mysqli = openDatabase();
+	global $mysqli;
 	
 	$sql = "
 	Select
@@ -940,7 +907,6 @@ function getResults($query, $detail) {
 	}
 	
 	$results->free();
-	closeDatabase($mysqli);
 	
 	if ( $detail ) {
 		return $resultsJson[$query["resultId"][0]];
@@ -979,7 +945,7 @@ function addResult() {
 	
 	$encodedTeam = json_encode($team);
 	
-	$mysqli = openDatabase();
+	global $mysqli;
 	
 	$stmt = $mysqli->prepare("Insert Into results ( eventId, playerId, position, team, api ) Values ( ?, ?, ?, ?, ? );");
 	$stmt->bind_param("iiiss", $eventId, $playerId, $position, $encodedTeam, $apiKey);
@@ -1035,7 +1001,7 @@ function updateResult() {
 	
 	$encodedTeam = json_encode($team);
 
-	$mysqli = openDatabase();
+	global $mysqli;
 		
 	$stmt = $mysqli->prepare("Delete From results Where eventId = ? And position = ?;");
 	$stmt->bind_param("ii", $eventId, $position);
@@ -1047,8 +1013,6 @@ function updateResult() {
 	$stmt->execute();
 	$resultId = $stmt->insert_id;
 	$stmt->close();
-	
-	closeDatabase($mysqli);
 	
 	return array(
 		"id"		=> $resultId,
@@ -1103,7 +1067,7 @@ function apiResourceEventTypes($method, $request, $query) {
 }
 
 function getEventTypes($query, $detail) {
-	$mysqli = openDatabase();
+	global $mysqli;
 	
 	$sql = "
 	Select
@@ -1160,8 +1124,6 @@ function getEventTypes($query, $detail) {
 	}
 	
 	$eventTypes->free();
-
-	closeDatabase($mysqli);
 	
 	if ( $query["format"] == "dropdown" ) {
 		return array("results" => $eventTypesJson);
@@ -1262,8 +1224,13 @@ function convertPositionToPoints($position, $playerCount, $points) {
 	return $currentPoints;
 }
 
+$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+mysqli_set_charset($mysqli, "utf8");
+
 header('Content-Type: application/json; charset=utf-8');
 $json = json_encode(apiResource(), JSON_PRETTY_PRINT);
 echo $json;
+
+$mysql->close();
 
 ?>

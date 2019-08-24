@@ -11,14 +11,7 @@
 	include_once("resources/php/functions.php");
 
 	$countryList = json_decode(file_get_contents(getBaseUrl() . "api/v1/countries"), true);
-	$playerJson = @file_get_contents(getBaseUrl() . "api/v1/players?format=table");
-	
-	if ( $playerJson !== "" ) {
-		$playerList = json_decode($playerJson, true);
-	} else {
-		$playerList = null;
-	}
-	
+	$playerList = json_decode(@file_get_contents(getBaseUrl() . "api/v1/players?format=table"), true);
 	$periodData = getSeasonDropdownData();
 ?>
     <div class="container">
