@@ -111,7 +111,11 @@
 					<td class="text-center"><? echo $eventsData[$result["eventId"]]["season"]; ?></td>
 					<td class="text-center"><? echo $result["position"]; ?></td>
 					<td class="text-center"><? echo $result["points"]; ?></td>
-					<td class="text-center team-column">
+<?		$searchText = ""; ?>
+<?		foreach($result["team"] as $pokemon) { ?>
+<?			$searchText .= $pokemon["name"] . " "; ?>
+<?		} ?>
+					<td class="text-center team-column" data-filter-value="<? echo trim($searchText); ?>">
 <?		$pokemonCount = 0; ?>
 <?		foreach($result["team"] as $pokemon) { ?>
 <?			$pokemonCount++; ?>
