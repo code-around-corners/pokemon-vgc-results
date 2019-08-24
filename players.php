@@ -12,7 +12,7 @@
 
 	$countryList = json_decode(file_get_contents(getBaseUrl() . "api/v1/countries"), true);
 	$playerList = json_decode(@file_get_contents(getBaseUrl() . "api/v1/players?format=table"), true);
-	$periodData = getSeasonDropdownData();
+	$periodData = null;
 ?>
     <div class="container">
 	    The player list is a roster of every player recorded in the Trainer Tower database. You can search

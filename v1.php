@@ -1231,6 +1231,6 @@ header('Content-Type: application/json; charset=utf-8');
 $json = json_encode(apiResource(), JSON_PRETTY_PRINT);
 echo $json;
 
-$mysql->close();
+$mysqli->close();
 
 ?>
