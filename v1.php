@@ -752,9 +752,7 @@ function apiResourceResults($method, $request, $query) {
 					case "GET":
 						return getResults($query, true);
 						break;
-					case "POST":
-					case "PUT":
-					case "DELETE":
+					default:
 						apiReturnCode(405);
 						return array();
 						break;
@@ -985,13 +983,17 @@ function updateResult() {
 	
 	if ( $eventId == "" || $playerId == "" || $position == "" ) {
 		apiReturnCode(405);
-		return;
+		return array(
+			"error" => "Must specify an event ID, a player ID and a position."
+		);
 	}
 	
 	for( $index = 0; $index < 6; $index++ ) {
 		if ( ! $team[$index]["valid"] ) {
 			apiReturnCode(405);
-			return;
+			return array(
+				"error" => "Pokemon #" . (index + 1) . " is invalid."
+			);
 		} else {
 			$team[$index]["name"] = decodePokemonLabel($team[$index]);
 			$team[$index]["class"] = getSpriteClass($team[$index]);
@@ -1026,9 +1028,7 @@ function apiResourceEventTypes($method, $request, $query) {
 			case "GET":
 				return getEventTypes($query, false);
 				break;
-			case "POST":
-			case "PUT":
-			case "DELETE":
+			default:
 				apiReturnCode(405);
 				return array();
 				break;
@@ -1138,9 +1138,7 @@ function apiResourceCountries($method, $request, $query) {
 			case "GET":
 				return getCountries($query);
 				break;
-			case "POST":
-			case "PUT":
-			case "DELETE":
+			default:
 				apiReturnCode(405);
 				return array();
 				break;

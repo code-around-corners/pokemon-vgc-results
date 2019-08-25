@@ -65,7 +65,7 @@
 					<td class="text-center"><? echo $record["position"]; ?></td>
 					<td class="text-center">
 						<select class="w-100 player-select-box">
-							<option value="<? echo $record["playerId"]; ?>">
+							<option value="<? echo $record["player"]["id"]; ?>">
 								<? echo $record["player"]["flagEmoji"]; ?>
 								<? echo $record["player"]["name"]; ?> (ID: <? echo $record["player"]["id"]; ?>)
 							</option>
@@ -198,7 +198,7 @@
 							row = $(this).parent().parent();
 							position = row.attr("data-position");
 							eventId = row.attr("data-event-id");
-							playerId = row.find("td").eq(1).find("select").eq(0).val();
+							playerId = row.find(".player-select-box").val();
 							resultId = $(this).attr("data-result-id");
 							
 							pokemon = [];
@@ -238,7 +238,7 @@
 								PkSpr.process_dom();
 								alert("Changes have been saved to the event!");
 							}).fail(function(data, textStatus, xhr) {
-								alert("Validation failed!");
+								alert("Error: " + data.responseJSON["error"]);
 							});
 						});
 					}

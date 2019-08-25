@@ -32,6 +32,7 @@ const ISO_3_TO_2 = array(
 );
 
 const VALID_COUNTRY_CODES = array(
+	"XXX" => "Not Specified",
 	"AFG" => "Afghanistan",
 	"ALA" => "Aland Islands",
 	"ALB" => "Albania",
@@ -279,7 +280,6 @@ const VALID_COUNTRY_CODES = array(
 	"YEM" => "Yemen",
 	"ZMB" => "Zambia",
 	"ZWE" => "Zimbabwe",
-	"XXX" => "Not Specified",
 );
 	
 ?>
