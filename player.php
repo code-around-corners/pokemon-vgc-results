@@ -61,7 +61,7 @@
 		    </a>
 <?	} ?>
         </h4>
-<?	if ( isset($_COOKIE["key"]) && $_COOKIE["key"] != "" ) { ?>
+<?	if ( $loggedIn ) { ?>
 		<h6 class="event-name">
 			<span class="text-center">
 				<a href="#!" data-toggle="modal" data-target="#playerEdit">Edit This Player</a>
@@ -156,7 +156,7 @@
 			</div>
 		</div>
 	</div>
-<?	if ( isset($_COOKIE["key"]) && $_COOKIE["key"] != "" ) { ?>
+<?	if ( $loggedIn ) { ?>
 	<div id="playerEdit" class="modal" tabindex="-1" role="dialog">
 		<div class="modal-dialog modal-lg" role="document">
 			<div class="modal-content">
@@ -282,7 +282,7 @@
 					youtube:		youtube,
 					facebook:		facebook,
 					twitch:			twitch,
-					key:			$("#currentApiKey").attr("data-api-key")
+					session:		Cookies.get("session")
 				}
 			}).done(function(data) {
 				alert("Player details have been updated!");

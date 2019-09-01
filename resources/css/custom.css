@@ -104,12 +104,6 @@ table.dataTable.compact thead th, table.dataTable.compact thead td {
 	padding-right: 4px !important;
 }
 
-.modal-body {
-    min-height: calc(100vh - 210px);
-    max-height: calc(100vh - 210px);
-    overflow-y: auto;
-}
-
 .fas-large {
 	font-size: 24px !important;
 }

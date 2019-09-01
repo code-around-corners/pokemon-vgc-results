@@ -11,16 +11,16 @@ const ALLOWED_SETTINGS_PARAMETERS = array(
 	"format" => "json",
 );
 
-if ( $_SERVER['REQUEST_METHOD'] == "PUT" ) {
-	parse_str(file_get_contents('php://input'), $_PUT);
-} elseif ( $_SERVER['REQUEST_METHOD'] == "DELETE" ) {
-	parse_str(file_get_contents('php://input'), $_DELETE);
-}
-
 function apiResource() {
 	$request = explode("/", $_GET["request"]);
 	$method = $_SERVER['REQUEST_METHOD'];
 	if ( $request[count($request) - 1] == "" ) unset($request[count($request) - 1]);
+	
+	if ( count($request) > 6 ) {
+		return array(
+			"error" => "Cannot traverse more than 3 levels deep."
+		);
+	}
 	
 	$resource = $request[0];
 	
@@ -35,33 +35,43 @@ function apiResource() {
 		}
 	}
 	
+	if ( $method == "GET" ) {
+		$args = $_GET;
+	} else {
+		parse_str(file_get_contents('php://input'), $args);
+	}
+	
 	switch ( $resource ) {
 		case "events":
-			return apiResourceEvents($method, $request, $query);
+			return apiResourceEvents($method, $request, $query, $args);
 			break;
 
 		case "players":
-			return apiResourcePlayers($method, $request, $query);
+			return apiResourcePlayers($method, $request, $query, $args);
 			break;
 
 		case "results":
-			return apiResourceResults($method, $request, $query);
+			return apiResourceResults($method, $request, $query, $args);
 			break;
 
 		case "seasons":
-			return apiResourceSeasons($method, $request, $query);
+			return apiResourceSeasons($method, $request, $query, $args);
 			break;
 
 		case "event-types":
-			return apiResourceEventTypes($method, $request, $query);
+			return apiResourceEventTypes($method, $request, $query, $args);
 			break;
 
 		case "pokemon":
-			return apiResourcePokemon($method, $request, $query);
+			return apiResourcePokemon($method, $request, $query, $args);
 			break;
 
 		case "countries":
-			return apiResourceCountries($method, $request, $query);
+			return apiResourceCountries($method, $request, $query, $args);
+			break;
+			
+		case "users":
+			return apiResourceUsers($method, $request, $query, $args);
 			break;
 			
 		default:
@@ -96,20 +106,20 @@ function addQueryParameter(&$query, $key, $value) {
 	$query[$key][count($query[$key])] = $value;
 }
 
-function apiResourceEvents($method, $request, $query) {
+function apiResourceEvents($method, $request, $query, $args) {
 	if ( ! isset($request[1]) ) {
 		switch ($method) {
 			case "GET":
-				return getEvents($query, false);
+				return getEvents($query, false, $args);
 				break;
 			case "POST":
-				return addEvent();
+				return addEvent($args);
 				break;
 			case "PUT":
-				return updateEvent();
+				return updateEvent($args);
 				break;
 			case "DELETE":
-				return deleteEvent();
+				return deleteEvent($args);
 				break;
 			default:
 				apiReturnCode(405);
@@ -126,7 +136,7 @@ function apiResourceEvents($method, $request, $query) {
 			if ( ! isset($request[2]) ) {
 				switch ($method) {
 					case "GET":
-						return getEvents($query, true);
+						return getEvents($query, true, $args);
 						break;
 					default:
 						apiReturnCode(405);
@@ -136,10 +146,10 @@ function apiResourceEvents($method, $request, $query) {
 			} else {
 				switch ( $request[2] ) {
 					case "players":
-						return apiResourcePlayers($method, array_slice($request, 2), $query);
+						return apiResourcePlayers($method, array_slice($request, 2), $query, $args);
 						break;
 					case "results":
-						return apiResourceResults($method, array_slice($request, 2), $query);
+						return apiResourceResults($method, array_slice($request, 2), $query, $args);
 						break;
 					default:
 						apiReturnCode(400);
@@ -152,7 +162,7 @@ function apiResourceEvents($method, $request, $query) {
 
 }
 
-function getEvents($query, $detail) {	
+function getEvents($query, $detail, $args) {	
 	global $mysqli;
 	
 	$sql = "
@@ -253,10 +263,17 @@ function getEvents($query, $detail) {
 	return $eventJson;
 }
 
-function addEvent() {
+function addEvent($args) {
 	global $mysqli;
 	
-	if ( ! isset($_POST["key"]) || ! isset(API_KEY[$_POST["key"]]) ) {
+	if ( ! isset($args["session"]) ) {
+		apiReturnCode(403);
+		return;
+	}
+	
+	$userId = validateSessionKey($args["session"], $_SERVER["REMOTE_ADDR"]);
+	
+	if ( ! $userId ) {
 		apiReturnCode(403);
 		return;
 	}
@@ -266,13 +283,12 @@ function addEvent() {
 	$eventDate = "";
 	$eventTypeId = "";
 	$playerCount = "";
-	$apiKey = $_POST["key"];
 	
-	if ( isset($_POST["eventName"]) )	$eventName = $_POST["eventName"];
-	if ( isset($_POST["countryCode"]) )	$countryCode = strtoupper($_POST["countryCode"]);
-	if ( isset($_POST["eventDate"]) )	$eventDate = $_POST["eventDate"];
-	if ( isset($_POST["eventTypeId"]) )	$eventTypeId = $_POST["eventTypeId"];
-	if ( isset($_POST["playerCount"]) )	$playerCount = $_POST["playerCount"];
+	if ( isset($args["eventName"]) )	$eventName = $args["eventName"];
+	if ( isset($args["countryCode"]) )	$countryCode = strtoupper($args["countryCode"]);
+	if ( isset($args["eventDate"]) )	$eventDate = $args["eventDate"];
+	if ( isset($args["eventTypeId"]) )	$eventTypeId = $args["eventTypeId"];
+	if ( isset($args["playerCount"]) )	$playerCount = $args["playerCount"];
 	
 	if ( $eventName == "" || $countryCode == "" || $eventDate == "" || $eventTypeId == "" ) {
 		apiReturnCode(400);
@@ -281,8 +297,8 @@ function addEvent() {
 	
 	if ( $playerCount == "" ) $playerCount = 0;
 	
-	$stmt = $mysqli->prepare("Insert Into events ( eventName, country, date, eventTypeId, playerCount, api ) Values ( ?, ?, ?, ?, ?, ? );");
-	$stmt->bind_param("sssiis", $eventName, $countryCode, $eventDate, $eventTypeId, $playerCount, $apiKey);
+	$stmt = $mysqli->prepare("Insert Into events ( eventName, country, date, eventTypeId, playerCount, createdId, lastUpdatedId ) Values ( ?, ?, ?, ?, ?, ?, ? );");
+	$stmt->bind_param("sssiiii", $eventName, $countryCode, $eventDate, $eventTypeId, $playerCount, $userId, $userId);
 	$stmt->execute();
 	$eventId = $stmt->insert_id;
 	$stmt->close();
@@ -292,10 +308,15 @@ function addEvent() {
 	);
 }
 
-function updateEvent() {
-	global $_PUT;
-
-	if ( ! isset($_PUT["key"]) || ! isset(API_KEY[$_PUT["key"]]) ) {
+function updateEvent($args) {
+	if ( ! isset($args["session"]) ) {
+		apiReturnCode(403);
+		return;
+	}
+	
+	$userId = validateSessionKey($args["session"], $_SERVER["REMOTE_ADDR"]);
+	
+	if ( ! $userId ) {
 		apiReturnCode(403);
 		return;
 	}
@@ -306,14 +327,13 @@ function updateEvent() {
 	$eventDate = "";
 	$eventTypeId = "";
 	$playerCount = "";
-	$apiKey = $_PUT["key"];
 	
-	if ( isset($_PUT["eventId"]) )		$eventId = $_PUT["eventId"];
-	if ( isset($_PUT["eventName"]) )	$eventName = $_PUT["eventName"];
-	if ( isset($_PUT["countryCode"]) )	$countryCode = strtoupper($_PUT["countryCode"]);
-	if ( isset($_PUT["eventDate"]) )	$eventDate = $_PUT["eventDate"];
-	if ( isset($_PUT["eventTypeId"]) )	$eventTypeId = $_PUT["eventTypeId"];
-	if ( isset($_PUT["playerCount"]) )	$playerCount = $_PUT["playerCount"];
+	if ( isset($args["eventId"]) )		$eventId = $args["eventId"];
+	if ( isset($args["eventName"]) )	$eventName = $args["eventName"];
+	if ( isset($args["countryCode"]) )	$countryCode = strtoupper($args["countryCode"]);
+	if ( isset($args["eventDate"]) )	$eventDate = $args["eventDate"];
+	if ( isset($args["eventTypeId"]) )	$eventTypeId = $args["eventTypeId"];
+	if ( isset($args["playerCount"]) )	$playerCount = $args["playerCount"];
 	
 	if ( $eventId == "" || $eventName == "" || $countryCode == "" || $eventDate == "" || $eventTypeId == "" ) {
 		apiReturnCode(405);
@@ -322,27 +342,32 @@ function updateEvent() {
 	
 	if ( $playerCount == "" ) $playerCount = 0;
 	
-	$sql = "Update events Set eventName = ?, country = ?, date = ?, eventTypeId = ?, playerCount = ?, api = ? Where id = ?;";
+	$sql = "Update events Set eventName = ?, country = ?, date = ?, eventTypeId = ?, playerCount = ?, lastUpdatedId = ? Where id = ?;";
 	global $mysqli;
 	
 	$stmt = $mysqli->prepare($sql);
-	$stmt->bind_param("sssiisi", $eventName, $countryCode, $eventDate, $eventTypeId, $playerCount, $apiKey, $eventId);
+	$stmt->bind_param("sssiisi", $eventName, $countryCode, $eventDate, $eventTypeId, $playerCount, $userId, $eventId);
 	$stmt->execute();
 	$stmt->close();
 	
 	return array();
 }
 
-function deleteEvent() {
-	global $_DELETE;
+function deleteEvent($args) {
+	if ( ! isset($args["session"]) ) {
+		apiReturnCode(403);
+		return;
+	}
 	
-	if ( ! isset($_DELETE["key"]) || ! isset(API_KEY[$_DELETE["key"]]) ) {
+	$userId = validateSessionKey($args["session"], $_SERVER["REMOTE_ADDR"]);
+	
+	if ( ! $userId ) {
 		apiReturnCode(403);
 		return;
 	}
 	
 	$eventId = "";
-	if ( isset($_DELETE["eventId"]) )	$eventId = $_DELETE["eventId"];
+	if ( isset($args["eventId"]) )	$eventId = $args["eventId"];
 	
 	if ( $eventId == "" ) {
 		apiReturnCode(405);
@@ -366,14 +391,14 @@ function deleteEvent() {
 	return array();
 }
 
-function apiResourcePlayers($method, $request, $query) {
+function apiResourcePlayers($method, $request, $query, $args) {
 	if ( ! isset($request[1]) ) {
 		switch ($method) {
 			case "GET":
-				return getPlayers($query, false);
+				return getPlayers($query, false, $args);
 				break;
 			case "POST":
-				return addPlayer();
+				return addPlayer($args);
 				break;
 			default:
 				apiReturnCode(405);
@@ -390,10 +415,10 @@ function apiResourcePlayers($method, $request, $query) {
 			if ( ! isset($request[2]) ) {
 				switch ($method) {
 					case "GET":
-						return getPlayers($query, true);
+						return getPlayers($query, true, $args);
 						break;
 					case "PUT":
-						return updatePlayer($playerId);
+						return updatePlayer($playerId, $args);
 						break;
 					default:
 						apiReturnCode(405);
@@ -403,10 +428,10 @@ function apiResourcePlayers($method, $request, $query) {
 			} else {
 				switch ( $request[2] ) {
 					case "events":
-						return apiResourceEvents($method, array_slice($request, 2), $query);
+						return apiResourceEvents($method, array_slice($request, 2), $query, $args);
 						break;
 					case "results":
-						return apiResourceResults($method, array_slice($request, 2), $query);
+						return apiResourceResults($method, array_slice($request, 2), $query, $args);
 						break;
 					default:
 						apiReturnCode(400);
@@ -417,7 +442,7 @@ function apiResourcePlayers($method, $request, $query) {
 	}
 }
 
-function getPlayers($query, $detail) {	
+function getPlayers($query, $detail, $args) {	
 	global $mysqli;
 	
 	$sql = "
@@ -584,30 +609,36 @@ function getPlayers($query, $detail) {
 	}
 }
 
-function addPlayer() {
+function addPlayer($args) {
 	global $mysqli;
 	
-	if ( ! isset($_POST["key"]) || ! isset(API_KEY[$_POST["key"]]) ) {
+	if ( ! isset($args["session"]) ) {
 		apiReturnCode(403);
 		return;
 	}
 	
+	$userId = validateSessionKey($args["session"], $_SERVER["REMOTE_ADDR"]);
+	
+	if ( ! $userId ) {
+		apiReturnCode(403);
+		return;
+	}
+		
 	$playerName = "";
 	$countryCode = "";
 	$twitter = "";
-	$apiKey = $_POST["key"];
 	
-	if ( isset($_POST["playerName"]) )	$playerName = trim($_POST["playerName"]);
-	if ( isset($_POST["countryCode"]) )	$countryCode = strtoupper($_POST["countryCode"]);
-	if ( isset($_POST["twitter"]) )		$twitter = $_POST["twitter"];
+	if ( isset($args["playerName"]) )	$playerName = trim($args["playerName"]);
+	if ( isset($args["countryCode"]) )	$countryCode = strtoupper($args["countryCode"]);
+	if ( isset($args["twitter"]) )		$twitter = $args["twitter"];
 	
 	if ( $playerName == "" || $countryCode == "" ) {
 		apiReturnCode(400);
 		return;
 	}
 	
-	$stmt = $mysqli->prepare("Insert Into players ( playerName, country, twitter, api ) Values ( ?, ?, ?, ? );");
-	$stmt->bind_param("ssss", $playerName, $countryCode, $twitter, $apiKey);
+	$stmt = $mysqli->prepare("Insert Into players ( playerName, country, twitter, createdId, lastUpdatedId ) Values ( ?, ?, ?, ?, ? );");
+	$stmt->bind_param("sssii", $playerName, $countryCode, $twitter, $userId, $userId);
 	$stmt->execute();
 	
 	if ( $mysqli->error != "" ) {
@@ -623,18 +654,24 @@ function addPlayer() {
 	);
 }
 
-function updatePlayer($playerId) {
-	global $_PUT;
+function updatePlayer($playerId, $args) {
 	global $mysqli;
 	
-	if ( ! isset($_PUT["key"]) || ! isset(API_KEY[$_PUT["key"]]) ) {
+	if ( ! isset($args["session"]) ) {
 		apiReturnCode(403);
 		return;
 	}
 	
-	if ( isset($_PUT["mergeId"]) ) {
+	$userId = validateSessionKey($args["session"], $_SERVER["REMOTE_ADDR"]);
+	
+	if ( ! $userId ) {
+		apiReturnCode(403);
+		return;
+	}
+	
+	if ( isset($args["mergeId"]) ) {
 		$mergeId = "";		
-		if ( isset($_PUT["mergeId"]) )	$mergeId = $_PUT["mergeId"];
+		if ( isset($args["mergeId"]) )	$mergeId = $args["mergeId"];
 		
 		if ( $playerId == "" || $mergeId == "" ) {
 			apiReturnCode(405);
@@ -672,8 +709,8 @@ function updatePlayer($playerId) {
 		
 		if ( ($twitter == "" || $twitter == null ) && $oldTwitter != "" ) $twitter = $oldTwitter;
 	
-		$stmt = $mysqli->prepare("Insert Into players ( playerName, country, facebook, twitter, youtube, twitch, api ) Values ( ?, ?, ?, ?, ?, ?, ? );");
-		$stmt->bind_param("sssssss", $playerName, $countryCode, $facebook, $twitter, $youtube, $twitch, $_PUT["key"]);
+		$stmt = $mysqli->prepare("Insert Into players ( playerName, country, facebook, twitter, youtube, twitch, createdId, lastUpdatedId ) Values ( ?, ?, ?, ?, ?, ?, ?, ? );");
+		$stmt->bind_param("ssssssii", $playerName, $countryCode, $facebook, $twitter, $youtube, $twitch, $userId, $userId);
 		
 		$stmt->execute();
 		$mergedPlayerId = $stmt->insert_id;
@@ -699,14 +736,13 @@ function updatePlayer($playerId) {
 		$youtube = "";
 		$facebook = "";
 		$twitch = "";
-		$apiKey = $_PUT["key"];
 		
-		if ( isset($_PUT["playerName"]) )	$playerName = $_PUT["playerName"];
-		if ( isset($_PUT["countryCode"]) )	$countryCode = strtoupper($_PUT["countryCode"]);
-		if ( isset($_PUT["twitter"]) )		$twitter = $_PUT["twitter"];
-		if ( isset($_PUT["youtube"]) )		$youtube = $_PUT["youtube"];
-		if ( isset($_PUT["facebook"]) )		$facebook = $_PUT["facebook"];
-		if ( isset($_PUT["twitch"]) )		$twitch = $_PUT["twitch"];
+		if ( isset($args["playerName"]) )	$playerName = $args["playerName"];
+		if ( isset($args["countryCode"]) )	$countryCode = strtoupper($args["countryCode"]);
+		if ( isset($args["twitter"]) )		$twitter = $args["twitter"];
+		if ( isset($args["youtube"]) )		$youtube = $args["youtube"];
+		if ( isset($args["facebook"]) )		$facebook = $args["facebook"];
+		if ( isset($args["twitch"]) )		$twitch = $args["twitch"];
 		
 		if ( $playerId == "" || $playerName == "" || $countryCode == "" ) {
 			apiReturnCode(405);
@@ -714,8 +750,8 @@ function updatePlayer($playerId) {
 		}
 		
 		$stmt = $mysqli->prepare("Update players Set playerName = ?, country = ?, twitter = ?, youtube = ?, facebook = ?, " .
-			"twitch = ?, api = ? Where id = ?;");
-		$stmt->bind_param("sssssssi", $playerName, $countryCode, $twitter, $youtube, $facebook, $twitch, $apiKey, $playerId);
+			"twitch = ?, lastUpdatedId = ? Where id = ?;");
+		$stmt->bind_param("ssssssii", $playerName, $countryCode, $twitter, $youtube, $facebook, $twitch, $userId, $playerId);
 		$stmt->execute();
 		$stmt->close();
 		
@@ -723,17 +759,17 @@ function updatePlayer($playerId) {
 	}
 }
 
-function apiResourceResults($method, $request, $query) {
+function apiResourceResults($method, $request, $query, $args) {
 	if ( ! isset($request[1]) ) {
 		switch ($method) {
 			case "GET":
-				return getResults($query, false);
+				return getResults($query, false, $args);
 				break;
 			case "POST":
-				return addResult();
+				return addResult($args);
 				break;
 			case "PUT":
-				return updateResult();
+				return updateResult($args);
 				break;
 			case "DELETE":
 				apiReturnCode(405);
@@ -750,7 +786,7 @@ function apiResourceResults($method, $request, $query) {
 			if ( ! isset($request[2]) ) {
 				switch ($method) {
 					case "GET":
-						return getResults($query, true);
+						return getResults($query, true, $args);
 						break;
 					default:
 						apiReturnCode(405);
@@ -768,7 +804,7 @@ function apiResourceResults($method, $request, $query) {
 	}
 }
 
-function getResults($query, $detail) {	
+function getResults($query, $detail, $args) {	
 	global $mysqli;
 	
 	$sql = "
@@ -913,8 +949,15 @@ function getResults($query, $detail) {
 	}
 }
 
-function addResult() {
-	if ( ! isset($_POST["key"]) || ! isset(API_KEY[$_POST["key"]]) ) {
+function addResult($args) {
+	if ( ! isset($args["session"]) ) {
+		apiReturnCode(403);
+		return;
+	}
+	
+	$userId = validateSessionKey($args["session"], $_SERVER["REMOTE_ADDR"]);
+	
+	if ( ! $userId ) {
 		apiReturnCode(403);
 		return;
 	}
@@ -923,18 +966,17 @@ function addResult() {
 	$playerId = "";
 	$position = "";
 	$team = array();
-	$apiKey = $_POST["key"];
 	
-	if ( isset($_POST["eventId"]) )			$eventId = $_POST["eventId"];
-	if ( isset($_POST["playerId"]) )		$playerId = $_POST["playerId"];
-	if ( isset($_POST["position"]) )		$position = $_POST["position"];
+	if ( isset($args["eventId"]) )		$eventId = $args["eventId"];
+	if ( isset($args["playerId"]) )		$playerId = $args["playerId"];
+	if ( isset($args["position"]) )		$position = $args["position"];
 	
-	if ( isset($_POST["pokemon1"]) )		$team[0] = decodePokemonShowdown(base64_decode($_POST["pokemon1"]));
-	if ( isset($_POST["pokemon2"]) )		$team[1] = decodePokemonShowdown(base64_decode($_POST["pokemon2"]));
-	if ( isset($_POST["pokemon3"]) )		$team[2] = decodePokemonShowdown(base64_decode($_POST["pokemon3"]));
-	if ( isset($_POST["pokemon4"]) )		$team[3] = decodePokemonShowdown(base64_decode($_POST["pokemon4"]));
-	if ( isset($_POST["pokemon5"]) )		$team[4] = decodePokemonShowdown(base64_decode($_POST["pokemon5"]));
-	if ( isset($_POST["pokemon6"]) )		$team[5] = decodePokemonShowdown(base64_decode($_POST["pokemon6"]));
+	if ( isset($args["pokemon1"]) )		$team[0] = decodePokemonShowdown(base64_decode($args["pokemon1"]));
+	if ( isset($args["pokemon2"]) )		$team[1] = decodePokemonShowdown(base64_decode($args["pokemon2"]));
+	if ( isset($args["pokemon3"]) )		$team[2] = decodePokemonShowdown(base64_decode($args["pokemon3"]));
+	if ( isset($args["pokemon4"]) )		$team[3] = decodePokemonShowdown(base64_decode($args["pokemon4"]));
+	if ( isset($args["pokemon5"]) )		$team[4] = decodePokemonShowdown(base64_decode($args["pokemon5"]));
+	if ( isset($args["pokemon6"]) )		$team[5] = decodePokemonShowdown(base64_decode($args["pokemon6"]));
 	
 	if ( $eventId == "" || $playerId == "" || $position == "" ) {
 		apiReturnCode(400);
@@ -945,8 +987,8 @@ function addResult() {
 	
 	global $mysqli;
 	
-	$stmt = $mysqli->prepare("Insert Into results ( eventId, playerId, position, team, api ) Values ( ?, ?, ?, ?, ? );");
-	$stmt->bind_param("iiiss", $eventId, $playerId, $position, $encodedTeam, $apiKey);
+	$stmt = $mysqli->prepare("Insert Into results ( eventId, playerId, position, team, createdId, lastUpdatedId ) Values ( ?, ?, ?, ?, ?, ? );");
+	$stmt->bind_param("iiisii", $eventId, $playerId, $position, $encodedTeam, $userId, $userId);
 	$stmt->execute();
 	$resultId = $stmt->insert_id;
 	$stmt->close();
@@ -956,30 +998,39 @@ function addResult() {
 	);
 }
 
-function updateResult() {
-	global $_PUT;
-	
-	if ( ! isset($_PUT["key"]) || ! isset(API_KEY[$_PUT["key"]]) ) {
+function updateResult($args) {
+	if ( ! isset($args["session"]) ) {
 		apiReturnCode(403);
-		return;
+		return array(
+			"error" => "This function requires a valid session key.",
+			"data" => $args
+		);
+	}
+
+	$userId = validateSessionKey($args["session"], $_SERVER["REMOTE_ADDR"]);
+	
+	if ( ! $userId ) {
+		apiReturnCode(403);
+		return array(
+			"error" => "Invalid session key."
+		);
 	}
 
 	$eventId = "";
 	$playerId = "";
 	$position = "";
 	$team = array();
-	$apiKey = $_PUT["key"];
 	
-	if ( isset($_PUT["eventId"]) )	$eventId = $_PUT["eventId"];
-	if ( isset($_PUT["playerId"]) )	$playerId = $_PUT["playerId"];
-	if ( isset($_PUT["position"]) )	$position = $_PUT["position"];
+	if ( isset($args["eventId"]) )	$eventId = $args["eventId"];
+	if ( isset($args["playerId"]) )	$playerId = $args["playerId"];
+	if ( isset($args["position"]) )	$position = $args["position"];
 	
-	if ( isset($_PUT["pokemon1"]) )	$team[0] = decodePokemonShowdown(base64_decode($_PUT["pokemon1"]));
-	if ( isset($_PUT["pokemon2"]) )	$team[1] = decodePokemonShowdown(base64_decode($_PUT["pokemon2"]));
-	if ( isset($_PUT["pokemon3"]) )	$team[2] = decodePokemonShowdown(base64_decode($_PUT["pokemon3"]));
-	if ( isset($_PUT["pokemon4"]) )	$team[3] = decodePokemonShowdown(base64_decode($_PUT["pokemon4"]));
-	if ( isset($_PUT["pokemon5"]) )	$team[4] = decodePokemonShowdown(base64_decode($_PUT["pokemon5"]));
-	if ( isset($_PUT["pokemon6"]) )	$team[5] = decodePokemonShowdown(base64_decode($_PUT["pokemon6"]));
+	if ( isset($args["pokemon1"]) )	$team[0] = decodePokemonShowdown(base64_decode($args["pokemon1"]));
+	if ( isset($args["pokemon2"]) )	$team[1] = decodePokemonShowdown(base64_decode($args["pokemon2"]));
+	if ( isset($args["pokemon3"]) )	$team[2] = decodePokemonShowdown(base64_decode($args["pokemon3"]));
+	if ( isset($args["pokemon4"]) )	$team[3] = decodePokemonShowdown(base64_decode($args["pokemon4"]));
+	if ( isset($args["pokemon5"]) )	$team[4] = decodePokemonShowdown(base64_decode($args["pokemon5"]));
+	if ( isset($args["pokemon6"]) )	$team[5] = decodePokemonShowdown(base64_decode($args["pokemon6"]));
 	
 	if ( $eventId == "" || $playerId == "" || $position == "" ) {
 		apiReturnCode(405);
@@ -1005,28 +1056,21 @@ function updateResult() {
 
 	global $mysqli;
 		
-	$stmt = $mysqli->prepare("Delete From results Where eventId = ? And position = ?;");
-	$stmt->bind_param("ii", $eventId, $position);
+	$stmt = $mysqli->prepare("Update results Set playerId = ?, team = ?, lastUpdatedId = ? Where eventId = ? And position = ?;");
+	$stmt->bind_param("isiii", $playerId, $encodedTeam, $userId, $eventId, $position);
 	$stmt->execute();
-	$stmt->close();
-	
-	$stmt = $mysqli->prepare("Insert Into results ( eventId, playerId, position, team, api ) Values ( ?, ?, ?, ?, ? );");
-	$stmt->bind_param("iiiss", $eventId, $playerId, $position, $encodedTeam, $apiKey);
-	$stmt->execute();
-	$resultId = $stmt->insert_id;
 	$stmt->close();
 	
 	return array(
-		"id"		=> $resultId,
 		"team"		=> $team
 	);
 }
 
-function apiResourceEventTypes($method, $request, $query) {
+function apiResourceEventTypes($method, $request, $query, $args) {
 	if ( ! isset($request[1]) ) {
 		switch ($method) {
 			case "GET":
-				return getEventTypes($query, false);
+				return getEventTypes($query, false, $args);
 				break;
 			default:
 				apiReturnCode(405);
@@ -1043,11 +1087,9 @@ function apiResourceEventTypes($method, $request, $query) {
 			if ( ! isset($request[2]) ) {
 				switch ($method) {
 					case "GET":
-						return getEventTypes($query, true);
+						return getEventTypes($query, true, $args);
 						break;
-					case "POST":
-					case "PUT":
-					case "DELETE":
+					default:
 						apiReturnCode(405);
 						return array();
 						break;
@@ -1055,7 +1097,7 @@ function apiResourceEventTypes($method, $request, $query) {
 			} else {
 				switch ( $request[2] ) {
 					case "events":
-						return apiResourceEvents($method, array_splice($request, 2), $query);
+						return apiResourceEvents($method, array_splice($request, 2), $query, $args);
 						break;
 					default:
 						apiReturnCode(400);
@@ -1066,7 +1108,7 @@ function apiResourceEventTypes($method, $request, $query) {
 	}
 }
 
-function getEventTypes($query, $detail) {
+function getEventTypes($query, $detail, $args) {
 	global $mysqli;
 	
 	$sql = "
@@ -1112,7 +1154,7 @@ function getEventTypes($query, $detail) {
 		if ( $query["format"] == "dropdown" ) {
 			$eventTypesJson[count($eventTypesJson)] = array(
 				"id"	=> $eventType["eventTypeId"],
-				"text"	=> $eventType["eventType"]
+				"text"	=> "(" . $eventType["season"] . ") " . $eventType["eventType"]
 			);
 		} else {
 			$eventTypesJson[$eventType["eventTypeId"]] = array(
@@ -1132,11 +1174,11 @@ function getEventTypes($query, $detail) {
 	}
 }
 
-function apiResourceCountries($method, $request, $query) {
+function apiResourceCountries($method, $request, $query, $args) {
 	if ( ! isset($request[1]) ) {
 		switch ($method) {
 			case "GET":
-				return getCountries($query);
+				return getCountries($query, $args);
 				break;
 			default:
 				apiReturnCode(405);
@@ -1153,7 +1195,7 @@ function apiResourceCountries($method, $request, $query) {
 			if ( ! isset($request[2]) ) {
 				switch ($method) {
 					case "GET":
-						return getCountry($countryCode);
+						return getCountry($countryCode, $args);
 						break;
 					case "POST":
 					case "PUT":
@@ -1165,10 +1207,10 @@ function apiResourceCountries($method, $request, $query) {
 			} else {
 				switch ( $request[2] ) {
 					case "events":
-						return apiResourceEvents($method, array_splice($request, 2), $query);
+						return apiResourceEvents($method, array_splice($request, 2), $query, $args);
 						break;
 					case "players":
-						return apiResourcePlayers($method, array_splice($request, 2), $query);
+						return apiResourcePlayers($method, array_splice($request, 2), $query, $args);
 						break;
 					default:
 						apiReturnCode(400);
@@ -1179,7 +1221,7 @@ function apiResourceCountries($method, $request, $query) {
 	}
 }
 
-function getCountries($query) {
+function getCountries($query, $args) {
 	$countryList = array();
 	
 	foreach(VALID_COUNTRY_CODES As $countryCode => $country) {
@@ -1206,6 +1248,205 @@ function getCountries($query) {
 	} else {
 		return $countryList;
 	}
+}
+
+function apiResourceUsers($method, $request, $query, $args) {
+	if ( ! isset($request[1]) ) {
+		switch ($method) {
+			default:
+				apiReturnCode(405);
+				return array();
+				break;
+		}
+	} else {
+		$username = $request[1];
+		addQueryParameter($query, "username", $username);
+		
+		if ( ! isset($request[2]) ) {
+			switch ($method) {
+				case "GET":
+					return getUserId($username, $args);
+					break;
+				default:
+					apiReturnCode(405);
+					return array();
+					break;
+			}
+		} else {
+			switch ( $request[2] ) {
+				case "sessions":
+					switch ( $method ) {
+						case "POST":
+							return getUserSession($username, $args);
+							break;
+						case "PUT":
+							return validateSession($username, $args);
+							break;
+						default:
+							apiReturnCode(405);
+							return array();
+							break;
+					}
+					break;
+				default:
+					apiReturnCode(400);
+					break;
+			}
+		}
+	}
+}
+
+function getUserId($username, $args) {
+	global $mysqli;
+	
+	$sql = "
+	Select
+		u.id,
+		u.username,
+		u.displayName
+	From
+		users u
+	Where
+		u.username = '" . sanitize($username) . "';";
+		
+	$users = $mysqli->query($sql);
+	$userData = array();
+
+	while ( $user = $users->fetch_assoc() ) {
+		$userData = array(
+			"userId" => (int)$user["id"],
+			"username" => $user["username"],
+			"name" => $user["displayName"]
+		);
+	}
+	
+	$users->free();
+	
+	if ( count($userData) == 0 ) {
+		apiReturnCode(404);
+		return array(
+			"error" => "Invalid username!"
+		);
+	}
+	
+	return $userData;
+}
+
+function getUserSession($userId, $args) {
+	$password = "";
+	
+	if ( isset($args["password"]) ) {
+		$password = $args["password"];
+	}
+	
+	if ( $password == "" ) {
+		apiReturnCode(403);
+		return array(
+			"error" => "No password specified."
+		);
+	}
+	
+	if ( ! is_numeric($userId) ) {
+		apiReturnCode(403);
+		return array(
+			"error" => "Sessions can only be requested by user ID."
+		);
+	}
+	
+	global $mysqli;
+	
+	$sql = "
+	Select
+		u.id,
+		u.username,
+		u.displayName,
+		u.password,
+		u.salt
+	From
+		users u
+	Where
+		u.id = " . $userId;
+
+	$users = $mysqli->query($sql);
+	$userData = array();
+
+	while ( $user = $users->fetch_assoc() ) {
+		$userData = array(
+			"userId" => (int)$user["id"],
+			"username" => $user["username"],
+			"name" => $user["displayName"],
+			"password" => $user["password"],
+			"salt" => $user["salt"]
+		);
+	}
+	
+	$users->free();
+	
+	if ( count($userData) == 0 ) {
+		apiReturnCode(403);
+		return array();
+	}
+
+	$hash = hash("sha256", $password . $userData["salt"] . PW_PEPPER);
+	
+	if ( $hash != $userData["password"] ) {
+		apiReturnCode(403);
+		return array(
+			"error" => "Incorrect password."
+		);
+	}
+	
+	$sessionKey = hash("sha256", rand());
+	$expires = time() + (60 * 60 * 24 * 30);
+	
+	$sql = "Delete From sessions Where userId = " . $userData["userId"] . ";";
+	$mysqli->query($sql);
+	
+	$sql = "Insert Into sessions ( userId, sessionKey, ip, validUntil ) Values ( " . $userData["userId"] . ", '";
+	$sql .= $sessionKey . "', '" . $_SERVER["REMOTE_ADDR"] . "', " . $expires . " );";
+	
+	$mysqli->query($sql);
+	
+	return array(
+		"userId" => validateSessionKey($sessionKey, $_SERVER["REMOTE_ADDR"]),
+		"sessionKey" => $sessionKey
+	);
+}
+
+function validateSession($userId, $args) {
+	if ( ! isset($args["session"]) ) {
+		apiReturnCode(405);
+		return array(
+			"error" => "No session key specified."
+		);
+	}
+
+	$sessionKey = $args["session"];
+	$ip = $args["ip"];
+	$validatedUserId = validateSessionKey($sessionKey, $ip);
+	
+	return array(
+		"valid" => ($userId == $validatedUserId)
+	);
+}
+
+function validateSessionKey($sessionKey, $ip) {
+	global $mysqli;
+	
+	$sql = "Select s.userId From sessions s Where s.sessionKey = '";
+	$sql .= $mysqli->real_escape_string($sessionKey) . "' And validUntil >= UNIX_TIMESTAMP() ";
+	$sql .= "And ip = '" . $ip . "';";
+
+	$sessions = $mysqli->query($sql);
+	$userId = null;
+
+	while ( $session = $sessions->fetch_assoc() ) {
+		$userId = (int)$session["userId"];
+	}
+	
+	$sessions->free();
+	
+	return $userId;
 }
 
 function convertPositionToPoints($position, $playerCount, $points) {

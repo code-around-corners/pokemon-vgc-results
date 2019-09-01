@@ -10,8 +10,8 @@
 	include_once("resources/php/functions.php");
 	include_once("resources/php/navigation.php");
 
-	if ( ! requireApiKey() ) {
-		showApiKeyError();
+	if ( ! $loggedIn ) {
+		showLoggedOutError();
 	} else {
 ?>
 	<div class="grey-header container">
@@ -153,7 +153,7 @@
 				type: "PUT",
 				data: {
 					mergeId: player2,
-					key: $("#currentApiKey").attr("data-api-key")
+					session: Cookies.get("session")
 				}
 			}).done(function(data) {
 				alert("Player records have been merged using the ID " + data["id"]);

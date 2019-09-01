@@ -10,8 +10,8 @@
 	include_once("resources/php/functions.php");
 	include_once("resources/php/navigation.php");
 
-	if ( ! requireApiKey() ) {
-		showApiKeyError();
+	if ( ! $loggedIn ) {
+		showLoggedOutError();
 	} elseif ( ! isset($_GET["eventId"]) ) {
 ?>
     <div class="grey-header container">
@@ -164,6 +164,7 @@
 
 <?	include_once("resources/php/footer.php"); ?>
 
+<?	if ( isLoggedIn() ) { ?>
 	<script lang="text/javascript">
 		$(document).ready(function() {
 			PkSpr.process_dom();
@@ -221,7 +222,7 @@
 									pokemon4: pokemon[3],
 									pokemon5: pokemon[4],
 									pokemon6: pokemon[5],
-									key: $("#currentApiKey").attr("data-api-key")
+									session: Cookies.get("session")
 								}
 							}).done(function(data) {
 								for ( index = 0; index < 6; index++ ) {
@@ -253,7 +254,7 @@
 			}).done(function(data) {
 				$("#eventType").find("option").remove();
 				
-				$.each(data["data"], function(index, eventType) {
+				$.each(data["results"], function(index, eventType) {
 					$("#eventType").append("<option value='" + eventType["id"] + "'>" + eventType["text"] + "</option>");
 				});
 			});
@@ -283,7 +284,7 @@
 					eventDate: eventDate,
 					eventTypeId: eventTypeId,
 					playerCount: playerCount,
-					key: $("#currentApiKey").attr("data-api-key")
+					session: Cookies.get("session")
 				}
 			}).done(function(data) {
 				alert("Event details have been updated!");
@@ -293,5 +294,6 @@
 			});
 		}
 	</script>
+<?	} ?>
 </body>
 </html>

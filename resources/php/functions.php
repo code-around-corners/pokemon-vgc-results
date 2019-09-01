@@ -619,21 +619,47 @@ function getBaseUrl() {
 		strlen($_SERVER["REQUEST_URI"]) - strlen(basename($_SERVER["REQUEST_URI"])));
 }
 
-function requireApiKey() {
-	if ( (isset($_COOKIE["key"]) && $_COOKIE["key"] != "") ) {
-		return true;
+function isLoggedIn() {
+	if ( (isset($_COOKIE["session"]) && $_COOKIE["session"] != "") ) {
+		if ( (isset($_COOKIE["user"]) && $_COOKIE["user"] != "") ) {
+			$userId = $_COOKIE["user"];
+			$sessionKey = $_COOKIE["session"];
+			
+			$query = http_build_query(
+				array(
+					"session" => $sessionKey,
+					"ip" => $_SERVER["REMOTE_ADDR"]
+				)
+			);
+			
+			$opts = array("http" =>
+				array(
+					"method" => "PUT",
+					"header" => "Content-Type: application/x-www-formurlencoded",
+					"content" => $query
+				)
+			);
+			
+			$context = stream_context_create($opts);			
+			$sessionData = file_get_contents(getBaseUrl() . "api/v1/users/" . $userId . "/sessions", false, $context);
+			$sessionJson = json_decode($sessionData, true);
+			
+			return $sessionJson["valid"];
+		} else {
+			return false;
+		}
 	} else {
 		return false;
 	}
 }
 
-function showApiKeyError() {
+function showLoggedOutError() {
 ?>
     <div class="grey-header container">
         <h4 class="event-name">
-	        <b>API Key Required</b>
+	        <i class="fas fa-bomb"></i> <b>Account Required</b>
 	    </h4>
-	    <h6 class="text-center">This section of the website requires you to have a valid API key.</h6>
+	    <h6 class="text-center">This section of the website requires you to have a valid account logged in.</h6>
     </div>
 <?
 }

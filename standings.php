@@ -34,7 +34,7 @@
 <?	if ( $eventsData["playerCount"] > 0 ) { ?>
 			 | <? echo $eventsData["playerCount"]; ?> Players
 <?	} ?>
-<?	if ( isset($_COOKIE["key"]) && $_COOKIE["key"] != "" ) { ?>
+<?	if ( $loggedIn ) { ?>
 			<span class="text-center">
 				| <a href="edit.php?eventId=<? echo $eventId; ?>">Edit This Event</a>
 				| <a href="#!" class="delete-event" onclick="javascript:deleteEvent();">Delete This Event</a>
@@ -175,7 +175,7 @@
 				type: "DELETE",
 				data: {
 					eventId:	<? echo $eventId; ?>,
-					key: 		$("#currentApiKey").attr("data-api-key")
+					session: 	Cookies.get("session")
 				}
 			}).done(function(data) {
 				alert("The event '<? echo $eventsData["name"]; ?>' has been removed from the database.");
