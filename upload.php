@@ -353,7 +353,7 @@
 						playerName: playerName,
 						countryCode: countryCode,
 						twitter: twitter,
-						session: $("#currentSessionKey").attr("data-session-key")
+						session: Cookies.get("session")
 					});
 				}
 			});
@@ -392,7 +392,7 @@
 				eventDate: eventDate,
 				eventTypeId: eventTypeId,
 				playerCount: playerCount,
-				session: $("#currentSessionKey").attr("data-session-key")
+				session: Cookies.get("session")
 			}).done(function(data) {
 				eventId = data["id"];
 				
@@ -417,7 +417,7 @@
 						pokemon4: pokemon4,
 						pokemon5: pokemon5,
 						pokemon6: pokemon6,
-						session: $("#currentSessionKey").attr("data-session-key")
+						session: Cookies.get("session")
 					});
 				});
 
