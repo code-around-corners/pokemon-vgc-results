@@ -10,30 +10,30 @@
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
 			<ul class="navbar-nav mr-auto">
 				<li class="nav-item<? echo ((basename($_SERVER['REQUEST_URI']) == "events.php") ? " active" : ""); ?>">
-					<a class="nav-link" href="events.php"><i class="fas fa-calendar"></i> Past Events Results</a>
+					<a class="nav-link" href="events.php"><i class="fas fa-fw fa-calendar"></i> Past Events Results</a>
 				</li>
 				<li class="nav-item<? echo ((basename($_SERVER['REQUEST_URI']) == "players.php") ? " active" : ""); ?>">
-					<a class="nav-link" href="players.php"><i class="fas fa-users"></i> Player List</a>
+					<a class="nav-link" href="players.php"><i class="fas fa-fw fa-users"></i> Player List</a>
 				</li>
 				<li class="nav-item dropdown">
 					<a class="nav-link dropdown-toggle" data-toggle="dropdown"
 						href="#" role="button" aria-haspopup="true" aria-expanded="false">
-						<i class="fas fa-database"></i> Data Management
+						<i class="fas fa-fw fa-database"></i> Data Management
 					</a>
 					<div class="dropdown-menu">
 <?	if ( $loggedIn ) { ?>
-						<a class="dropdown-item" href="upload.php"><i class="fas fa-file-upload"></i> Upload Results</a>
-						<a class="dropdown-item" href="merge.php"><i class="fas fa-object-group"></i> Merge Player Records</a>
-						<a class="dropdown-item" href="#!" id="user-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+						<a class="dropdown-item" href="upload.php"><i class="fas fa-fw fa-file-upload"></i> Upload Results</a>
+						<a class="dropdown-item" href="merge.php"><i class="fas fa-fw fa-object-group"></i> Merge Player Records</a>
+						<a class="dropdown-item" href="#!" id="user-logout"><i class="fas fa-fw fa-sign-out-alt"></i> Logout</a>
 <?	} else { ?>
-						<a class="dropdown-item" href="#!" id="user-login"><i class="fas fa-sign-in-alt"></i> Login</a>
+						<a class="dropdown-item" href="#!" id="user-login"><i class="fas fa-fw fa-sign-in-alt"></i> Login</a>
 <?	} ?>
 					</div>
 				</li>
 				<li class="nav-item dropdown">
 					<a class="nav-link dropdown-toggle" data-toggle="dropdown"
 						href="#" role="button" aria-haspopup="true" aria-expanded="false">
-						<i class="fas fa-external-link-alt"></i> Pokémon Links
+						<i class="fas fa-fw fa-external-link-alt"></i> Pokémon Links
 					</a>
 					<div class="dropdown-menu">
 					    <a class="dropdown-item" target="_new" href="http://www.pokemon.com/us/play-pokemon/pokemon-events/pokemon-tournaments/earn-championship-points-vg/">VGC Championship Points</a>
@@ -46,7 +46,7 @@
 					</div>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link" href="https://www.pokecal.com/" target="_new"><i class="fas fa-search-location"></i> Find Local Events</a>
+					<a class="nav-link" href="https://www.pokecal.com/" target="_new"><i class="fas fa-fw fa-search-location"></i> Find Local Events</a>
 				</li>
 			</ul>
 			<ul class="navbar-nav">
