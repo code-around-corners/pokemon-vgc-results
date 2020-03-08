@@ -129,7 +129,7 @@
 						<div class="row w-100">
 <?		foreach($record["team"] as $pokemon) { ?>
 							<div class="col-6 col-sm-4 text-center">
-								<div class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></div>
+								<span class="pkspr-gen8-box"><div class="tttooltip <? echo getSpriteClass($pokemon); ?>" title="<? echo decodePokemonLabel($pokemon); ?>"></div></span>
 								<br />
 								<textarea class="w-100" rows=5><? echo encodePokemonShowdown($pokemon); ?></textarea>
 							</div>

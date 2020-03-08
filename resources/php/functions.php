@@ -142,6 +142,8 @@ function decodePokemonLabel($pokemonData) {
 	} elseif ( $pokemonData["forme"] == "Therian" || $pokemonData["forme"] == "Incarnate" ) {
 		$label = $pokemonData["pokemon"] . "-" . $pokemonData["forme"];
 
+	} elseif ( $pokemonData["forme"] == "Gmax" ) {
+		$label = $pokemonData["pokemon"] . " (Gigantamax)";
 	} elseif ( $pokemonData["forme"] != "" ) {
 		$label = $pokemonData["pokemon"] . " " . $pokemonData["forme"];
 
@@ -153,20 +155,22 @@ function decodePokemonLabel($pokemonData) {
 }
 
 function getSpriteClass($pokemonData) {
-	$class = "pkspr";
+	$class = "pkspr pkspr-gen8";
 	
 	if ( isset($pokemonData["valid"]) && $pokemonData["valid"] ) {
-		$class .= " pkmn-" . str_replace(" ", "-", strtolower($pokemonData["pokemon"]));
+		$class .= " pkspr-pokemon-" . str_replace(" ", "-", strtolower($pokemonData["pokemon"]));
 		
 		if ( $pokemonData["forme"] != "" ) {
-			$class .= " form-" . str_replace(" ", "-", strtolower($pokemonData["forme"]));
+			if ( strpos("Incarnate|Shield", $pokemonData["forme"]) === false ) {
+				$class .= "-" . str_replace(" ", "-", strtolower($pokemonData["forme"]));
+			}
 		}
 		
 		if ( isset($pokemonData["shiny"]) && $pokemonData["shiny"] ) {
-			$class .= " color-shiny";
+			$class .= "-shiny";
 		}
 	} else {
-		$class .= " pkmn-unknown";
+		$class .= " pkspr-pokemon-unknown";
 	}
 	
 	return $class;

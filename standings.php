@@ -74,7 +74,7 @@
 						<span class="d-sm-inline d-md-none">
 							<br />
 <?			foreach($result["team"] as $pokemon) { ?>
-							<span class="tttooltip d-md-inline d-lg-none <? echo $pokemon["class"]; ?>" title="<? echo $pokemon["name"]; ?>"></span>
+							<span class="pkspr-gen8-box"><span class="d-md-inline d-lg-none tttooltip <? echo $pokemon["class"]; ?>" title="<? echo $pokemon["name"]; ?>"></span></span>
 <?			} ?>
 						</span>
 					 </td>
@@ -85,7 +85,7 @@
 <?			} ?>
 					<td class="text-center hide-detail-row team-column" data-filter-value="<? echo $pokemonSearch; ?>">
 <?			foreach($result["team"] as $pokemon) { ?>
-						<span class="tttooltip <? echo $pokemon["class"]; ?>" title="<? echo $pokemon["name"]; ?>"></span>
+						<span class="pkspr-gen8-box"><span class="tttooltip <? echo $pokemon["class"]; ?>" title="<? echo $pokemon["name"]; ?>"></span></span>
 <?			} ?>
 					</td>
 					<td class="text-center">

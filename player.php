@@ -119,7 +119,7 @@
 <?		$pokemonCount = 0; ?>
 <?		foreach($result["team"] as $pokemon) { ?>
 <?			$pokemonCount++; ?>
-						<span class="tttooltip <? echo $pokemon["class"]; ?>" title="<? echo $pokemon["name"]; ?>"></span>
+						<span class="pkspr-gen8-box"><span class="tttooltip <? echo $pokemon["class"]; ?>" title="<? echo $pokemon["name"]; ?>"></span></span>
 <?			if ( $pokemonCount == 3 ) { ?>
 						<br class="phone-line-break" />
 <?			} ?>
