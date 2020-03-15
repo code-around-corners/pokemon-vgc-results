@@ -1,3 +1,12 @@
+<?php
+    if ( isset($_GET["id"]) ) {
+        if ( ! is_numeric($_GET["id"]) ) {
+            header('HTTP/1.1 500 Internal Server Error');
+            exit(1);
+        }
+    }
+?>
+
 <!doctype html>
 <html lang="en">
 
